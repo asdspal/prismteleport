@@ -123,7 +123,7 @@ contract PrismTokenizerTest is Test {
         gauge.notifyReward(address(adapter), amount);
     }
 
-    function testInitializeSeries() public {
+    function testInitializeSeries() public view {
         PrismTokenizer.Series memory s = tokenizer.getSeries(maturity);
         assertEq(s.maturity, maturity);
         assertTrue(s.ptToken != address(0));

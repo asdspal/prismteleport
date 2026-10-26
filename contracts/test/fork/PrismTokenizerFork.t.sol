@@ -78,6 +78,8 @@ contract PrismTokenizerForkTest is Test {
         assertEq(IERC20(SMUSD).balanceOf(address(adapter)), 1000e18);
 
         uint256 beforeBalance = TestnetFeeInjector(SMUSD).musdToken().balanceOf(address(this));
+        uint256 expectedYield =
+            (0.5e18 * IERC20(SMUSD).balanceOf(address(adapter))) / TestnetFeeInjector(SMUSD).totalSupply();
         ForkMUSD(MUSD).mint(address(this), 0.5e18);
         IERC20(MUSD).approve(SMUSD, 0.5e18);
         TestnetFeeInjector(SMUSD).injectWeeklyFeeYield(0.5e18);
@@ -85,12 +87,13 @@ contract PrismTokenizerForkTest is Test {
 
         tokenizer.syncYield();
         (uint256 pendingMusd,) = tokenizer.pendingYield(maturity, alice);
-        assertApproxEqAbs(pendingMusd, 0.5e18, 1);
+        assertApproxEqAbs(pendingMusd, expectedYield, 1);
 
+        uint256 expectedNet = (expectedYield * 9700) / 10_000;
         vm.prank(alice);
         (uint256 netMusd,) = tokenizer.claimYield(maturity, alice);
-        assertApproxEqAbs(netMusd, 0.485e18, 1);
-        assertApproxEqAbs(IERC20(MUSD).balanceOf(alice), 0.485e18, 1);
+        assertApproxEqAbs(netMusd, expectedNet, 1);
+        assertApproxEqAbs(IERC20(MUSD).balanceOf(alice), expectedNet, 1);
 
         ForkMEZO(MEZO).mint(address(gauge), 10e18);
         gauge.notifyReward(address(adapter), 10e18);

@@ -155,6 +155,73 @@
         ],
         "adapterTokenizer": "0x7c2d76a696Fba9A12268f12d062AE04b7c4C20B3"
       }
+    },
+    "PrismYieldAMM": {
+      "address": "0xa40D6d099c8e5e86841367Ed384EDD09859bA979",
+      "tokenizer": "0x7c2d76a696Fba9A12268f12d062AE04b7c4C20B3",
+      "musd": "0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503",
+      "feeStaking": "0xE5E0905F3c0b084cDc9221cA44146A6B4bD143a7",
+      "treasury": "0xfCe44470aC130E66849Aaa23F81D092066ff501E",
+      "swapFeeBps": 5,
+      "runtimeBytes": 8283,
+      "transactionHash": "0x4836b83e2d9a35c997fb1b2b4b6efb33718a8a69e80ab0678e50a7793c7fcd89",
+      "blockNumber": 16381889,
+      "gasUsed": 2500000,
+      "sourcify": {
+        "match": "exact_match",
+        "jobId": "7e47483a-09bb-4a87-8a00-530f82ceb0a9",
+        "url": "https://sourcify.dev/server/verify-ui/jobs/7e47483a-09bb-4a87-8a00-530f82ceb0a9",
+        "verifiedAt": "2026-10-26T13:36:46Z"
+      },
+      "borrow": {
+        "borrowerOperations": "0xCdF7028ceAB81fA0C6971208e83fa7872994beE5",
+        "collateralWei": "48000000000000000",
+        "musdWithdrawn": "2200000000000000000000",
+        "totalTroveDebt": "2402200008373495640516",
+        "transactionHash": "0xc2c2d5c349df2445887c3c844717aa31b9fca9339694982207111ab9dd2d6082",
+        "blockNumber": 16381874,
+        "gasUsed": 5000000
+      },
+      "pools": [
+        {
+          "label": "4-week",
+          "maturity": 1795046400,
+          "ptToken": "0x6e01091848b7a95265a161a0D9eE337eB91451bE",
+          "ytToken": "0x35DDd231fb5c565dB0c121917a068FCB3925F5e0",
+          "seedMUSD": "500000000000000000000",
+          "seedPt": "500000000000000000000",
+          "reserveMusd": "500000000000000000000",
+          "reservePt": "500000000000000000000",
+          "totalLp": "500000000000000000000",
+          "impliedRateWad": "50000000000000000",
+          "ptPrice": "996800194252133238",
+          "mintTransaction": "0x2e2f96dbb0f5da26dc123f41b6dcb476bb0638a5e7d17b9b158163fe77b11f47",
+          "mintBlock": 16381901,
+          "mintGas": 5000000,
+          "addLiquidityTransaction": "0x3ac238761a9c5378b9455a44aa3d152d385f02cde6b92fd9f94fbf80a70c6bb3",
+          "addLiquidityBlock": 16381905,
+          "addLiquidityGas": 500000
+        },
+        {
+          "label": "12-week",
+          "maturity": 1799884800,
+          "ptToken": "0x7221256C639F3b71edD85b1586c3806e815C52EE",
+          "ytToken": "0x15865598A46B91528a9dd7C4CD55049e38F61223",
+          "seedMUSD": "500000000000000000000",
+          "seedPt": "500000000000000000000",
+          "reserveMusd": "500000000000000000000",
+          "reservePt": "500000000000000000000",
+          "totalLp": "500000000000000000000",
+          "impliedRateWad": "50000000000000000",
+          "ptPrice": "989235818153637896",
+          "mintTransaction": "0xed70efe4d468f59ba59e792e8da6ed2b31fae71bd8c50c0eea380d853ee44e29",
+          "mintBlock": 16381915,
+          "mintGas": 5000000,
+          "addLiquidityTransaction": "0x45953604f4985908b01857c536140587b0d30daa17ba395e6017689973459322",
+          "addLiquidityBlock": 16381919,
+          "addLiquidityGas": 500000
+        }
+      ]
     }
   }
 }
