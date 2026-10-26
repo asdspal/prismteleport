@@ -1,0 +1,17 @@
+{
+  "chainId": 31611,
+  "network": "Mezo Testnet",
+  "contract": "TestnetFeeInjector",
+  "address": "0xd0F748a45708E77bf00384ED1C0ACC2e968517c3",
+  "musd": "0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503",
+  "deployer": "0xfCe44470aC130E66849Aaa23F81D092066ff501E",
+  "transactionHash": "0xd281d326b6161922c84b2fa76e2f0ffecb601c4f1e6d65b85d776927737e1f98",
+  "blockNumber": 16380089,
+  "gasUsed": 1129736,
+  "sourcify": {
+    "match": "exact_match",
+    "jobId": "637cacf7-7d5a-4d55-8302-9d0c9b692aa3",
+    "url": "https://sourcify.dev/server/verify-ui/jobs/637cacf7-7d5a-4d55-8302-9d0c9b692aa3",
+    "verifiedAt": "2026-10-26T11:28:49Z"
+  }
+}
