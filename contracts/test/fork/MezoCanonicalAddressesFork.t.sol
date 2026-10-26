@@ -19,6 +19,11 @@ import {MezoAddresses} from "../../src/libraries/MezoAddresses.sol";
 /// @notice Verifies every canonical Mezo address and selector against live state.
 /// @dev Runs both networks by selecting a fork inside each test, so a single
 ///      `forge test --match-path test/fork/MezoCanonicalAddressesFork.t.sol` covers both.
+interface IMainnetSMUSDExtras {
+    function strategy() external view returns (address);
+    function pendingYield() external view returns (uint256);
+}
+
 contract MezoCanonicalAddressesForkTest is Test {
     address internal constant PROBE = address(0xBEEF);
 
@@ -115,11 +120,12 @@ contract MezoCanonicalAddressesForkTest is Test {
     /// @dev Live sMUSD is a 1:1 savings receipt with a separate yield index, not ERC-4626.
     function _verifySMUSD(address smusd, address musd) internal {
         IMUSDSavingsRate vault = IMUSDSavingsRate(smusd);
+        IMainnetSMUSDExtras extras = IMainnetSMUSDExtras(smusd);
         assertEq(vault.musdToken(), musd, "sMUSD underlying mismatch");
         assertGt(vault.totalSupply(), 0, "sMUSD supply");
         assertGt(vault.yieldIndex(), 0, "sMUSD yield index");
 
-        address holder = vault.strategy();
+        address holder = extras.strategy();
         _assertCode(holder, "sMUSD strategy");
         uint256 musdBefore = IMUSD(musd).balanceOf(holder);
         uint256 sharesBefore = vault.balanceOf(holder);
@@ -138,7 +144,7 @@ contract MezoCanonicalAddressesForkTest is Test {
         console.log("sMUSD", smusd);
         console.log("sMUSD totalSupply", vault.totalSupply());
         console.log("sMUSD yieldIndex (1e18)", vault.yieldIndex());
-        console.log("sMUSD pendingYield", vault.pendingYield());
+        console.log("sMUSD pendingYield", extras.pendingYield());
         console.log("sMUSD probe: deposit/withdraw 1000 MUSD == 1000 sMUSD");
     }
 

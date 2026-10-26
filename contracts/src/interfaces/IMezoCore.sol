@@ -30,13 +30,9 @@ interface IMUSD is IERC20Metadata {
 interface IMUSDSavingsRate is IERC20Metadata {
     function musdToken() external view returns (address);
     function yieldToken() external view returns (address);
-    function strategy() external view returns (address);
-    function vaultGauge() external view returns (address);
-    function pcv() external view returns (address);
 
     /// @notice Cumulative yield per sMUSD, scaled by 1e18. Starts at 0.
     function yieldIndex() external view returns (uint256);
-    function pendingYield() external view returns (uint256);
     function claimableYield(address account) external view returns (uint256);
 
     /// @notice Deposit MUSD and mint sMUSD 1:1 to msg.sender.
