@@ -18,7 +18,7 @@ Plan: `memory-bank/implementation-plan.md` (M0–M5, 24 requirements `R-001`..`R
 | Step | Name | Status |
 | --- | --- | --- |
 | 1.1 | `PrismFeeStaking` MEZO precompile staking, fee tiers & MUSD revenue | DONE |
-| 1.2 | `DualTrackAdapter` unstaked sMUSD vs. gauge routing | PENDING |
+| 1.2 | `DualTrackAdapter` unstaked sMUSD vs. gauge routing | DONE |
 | 1.3 | `PrismTokenizer`, PT & YT tokens with smoothed index | PENDING |
 | 1.4 | `PrismYieldAMM` time-decay curve & flash-mint netting | PENDING |
 | 1.5 | 65,536-run invariants, Slither audit & live 31611 E2E | PENDING |
@@ -146,3 +146,23 @@ The plan called this an ERC-4626 vault. Mainnet sMUSD is verified **not** ERC-46
 
 - Claim gas is not measured live yet because the deployer has `0 MUSD`; it will be exercised in the Step 1.5 E2E after MUSD is minted/borrowed.
 - The live MEZO precompile `transferFrom` is much cheaper than the OpenZeppelin mock used in unit gas reports (`stake` 81,438 gas live vs. 117,560 mock). The live number is the authoritative one.
+
+## Step 1.2 evidence
+
+- `contracts/src/core/DualTrackAdapter.sol`: sMUSD custody with `UNSTAKED_SMUSD` and `GAUGE_STAKED_MEZO` modes, `50 bps` hysteresis, tokenizer-only deposits/withdrawals, permissionless `evaluateAndSwitchMode()`, automatic gauge withdrawal on redemption, and permissionless MEZO harvest forwarding to the tokenizer.
+- `contracts/src/mocks/MockMUSDSavingsGauge.sol`: testnet gauge stand-in implementing `IMUSDSavingsGauge` (`deposit`, `withdraw`, `getReward`, `rewardRate`, `balanceOf`).
+- `contracts/src/interfaces/IMezoCore.sol`: added `IMUSDSavingsGauge`.
+- `contracts/test/unit/DualTrackAdapter.t.sol`: **18/18 passing** (incl. 2 fuzz suites at 1,000 runs). Coverage: **100% lines (65/65), 100% statements (70/70), 100% functions (12/12), 96.97% branches (32/33)** for `DualTrackAdapter`.
+- Gas: `evaluateAndSwitchMode()` max **124,222** (target `< 145,000`); `depositSmusd` max **110,956**.
+- `contracts/test/fork/DualTrackAdapterFork.t.sol`: **1/1 passing** on live 31611 state. Uses the deployed `TestnetFeeInjector` ABI, real testnet MUSD/sMUSD addresses, a mock MEZO at the canonical precompile, and a mock gauge; covers deposit, switch, harvest, withdraw, and unstake.
+- Local Anvil fork deploy succeeded: gauge `0x3253cc93878f1790427e77b98c7Ce8Cc90276Fb2`, adapter `0x82af04cf8Ef50A94707Adb55182592e48c4a6CC8` (same addresses as live because the deployer nonce sequence is identical).
+- **Live deploy (2026-10-26):** `MockMUSDSavingsGauge` at `0x3253cc93878f1790427e77b98c7Ce8Cc90276Fb2`, tx `0x547e6c75...b90616`, block `16380872`, gas `332,718`; `DualTrackAdapter` at `0x82af04cf8Ef50A94707Adb55182592e48c4a6CC8`, tx `0x2aacf122...b34c3`, block `16380874`, gas `1,118,310`.
+- Sourcify: **exact_match** for both (gauge job `8c626fb4-0f1e-4a50-83be-20009ce14270`, adapter job `061d4b76-171e-42a4-aefa-5623f6ec9624`).
+- Live reads: `activeMode()` = `0`, `totalSmusdControlled()` = `0`, `tokenizer()` = zero, `gauge()` = mock gauge, `smusd()` = testnet `TestnetFeeInjector`.
+- Deployment record and `progress.md` updated; all `forge test` suites pass.
+
+### Step 1.2 deviations
+
+- The plan did not specify how `gaugeAprBps` / `unstakedAprBps` reach the adapter. Added tokenizer-only `setAprs(uint256 gaugeMezoAprBps, uint256 unstakedFeeAprBps)`; `PrismTokenizer` will own the oracle/keeper handoff in Step 1.3. `evaluateAndSwitchMode()` remains permissionless and uses the last tokenizer-set values.
+- The testnet gauge is a mock, as allowed by the plan (`gauge == address(0)` and zero-emission epochs are supported).
+- `initializeTokenizer` is intentionally uncalled on live 31611; Step 1.3 will bind the deployed `PrismTokenizer`.

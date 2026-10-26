@@ -48,6 +48,15 @@ interface IMUSDSavingsRate is IERC20Metadata {
     function receiveProtocolYield(uint256 amount) external;
 }
 
+/// @notice MUSD Savings Rate Gauge. Stakes sMUSD and distributes MEZO emissions.
+interface IMUSDSavingsGauge {
+    function deposit(uint256 amount) external;
+    function withdraw(uint256 amount) external;
+    function getReward() external returns (uint256);
+    function rewardRate() external view returns (uint256);
+    function balanceOf(address account) external view returns (uint256);
+}
+
 /// @notice Mezo BorrowerOperations. Docs: https://github.com/mezo-org/musd
 interface IBorrowerOperations {
     function musd() external view returns (address);
