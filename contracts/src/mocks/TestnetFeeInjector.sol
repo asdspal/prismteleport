@@ -59,6 +59,7 @@ contract TestnetFeeInjector is ERC20, ReentrancyGuard {
         require(supply > 0, "no supply");
         require(musdAmount <= (supply * MAX_FEE_BPS) / FEE_BPS_DENOMINATOR, "fee cap");
         if (lastInjection != 0) {
+            // forge-lint: disable-next-line(block-timestamp)
             require(block.timestamp >= lastInjection + INJECTION_COOLDOWN, "cooldown");
         }
 
@@ -115,6 +116,7 @@ contract TestnetFeeInjector is ERC20, ReentrancyGuard {
         uint256 increment = (amount * 1e18) / supply;
         if (increment > 0) {
             yieldIndex += increment;
+            // forge-lint: disable-next-line(divide-before-multiply)
             totalClaimable += (increment * supply) / 1e18;
         }
     }

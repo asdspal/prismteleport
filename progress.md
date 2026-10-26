@@ -13,7 +13,17 @@ Plan: `memory-bank/implementation-plan.md` (M0–M5, 24 requirements `R-001`..`R
 | 0.5 | Fastify server + resilient Mezo RPC client (`/v1/health`) | DONE |
 | 0.6 | Next.js 15 shell, design tokens, WCAG/a11y suite | DONE |
 
-## Milestones 1–5
+## Milestone 1 — Prism Core Smart Contracts
+
+| Step | Name | Status |
+| --- | --- | --- |
+| 1.1 | `PrismFeeStaking` MEZO precompile staking, fee tiers & MUSD revenue | DONE |
+| 1.2 | `DualTrackAdapter` unstaked sMUSD vs. gauge routing | PENDING |
+| 1.3 | `PrismTokenizer`, PT & YT tokens with smoothed index | PENDING |
+| 1.4 | `PrismYieldAMM` time-decay curve & flash-mint netting | PENDING |
+| 1.5 | 65,536-run invariants, Slither audit & live 31611 E2E | PENDING |
+
+## Milestones 2–5
 
 PENDING.
 
@@ -115,3 +125,24 @@ The plan called this an ERC-4626 vault. Mainnet sMUSD is verified **not** ERC-46
 - Contract tests: 21 unit/fuzz tests pass; injector coverage 100%; both live fork suites pass.
 - Relayer tests: 8 pass (5 DB + 3 RPC/health); web tests: 3 pass; Playwright: 2 pass; all TypeScript/ESLint gates pass.
 - Known constraints carried into M1: Mezo precompiles cannot execute under revm forks; sMUSD is 1:1 principal + `yieldIndex`, not ERC-4626; testnet sMUSD is the adapter; `slither` is not installed yet.
+
+## Step 1.1 evidence
+
+- `contracts/src/core/PrismFeeStaking.sol`: MEZO precompile staking with `stake`, `stakeWithPermit`, `unstake`, `claimRewards`, `notifyRewardAmount`, `pendingMusd`, and `getFeeDiscountBps`.
+- MasterChef-style `accMusdPerMezo` (1e18 precision), `unallocatedMusdBuffer` for pre-staker revenue, and a dust buffer so rounding never strands MUSD.
+- `StakeInfo` is packed into two storage slots (`uint128 amount`, `uint64 lastStakeTimestamp`, `uint128 rewardDebt`, `uint128 claimableMusd`) with checked casts.
+- 1-hour `DISCOUNT_COOLDOWN`; tiers at `10/100/500 MEZO` = `1000/2500/5000 bps`; top-ups reset the cooldown.
+- `stakeWithPermit` uses a low-level precompile call, normalizes `v < 27` to `27/28`, accepts either 32-byte `bool` or empty return data, and rejects other return lengths.
+- `contracts/test/unit/PrismFeeStaking.t.sol`: **18/18 passing** (incl. 3 fuzz suites at 1,000 runs). Coverage: **100% lines (74/74), 100% statements (78/78), 100% functions (11/11), 78.12% branches**, all above the 90% line gate.
+- `contracts/test/fork/PrismFeeStakingFork.t.sol`: **2/2 passing** against live 31611 state. The real precompile storage is unavailable under Foundry's revm fork, so the lifecycle test etches a mock at the canonical MEZO address; the metadata test verifies the real address and documents the limitation.
+- Local Anvil fork deploy: `0x7188450134eFbda4591D303dA02BE644Bb4B63Fb`.
+- **Live deploy (2026-10-26):** `0xE5E0905F3c0b084cDc9221cA44146A6B4bD143a7`, tx `0xe48361416eeba4259778fab2e5f7c56cda6cdef06d242b3c7ccd80fc8e9ee06e`, block `16380737`, gas `964,263`.
+- Sourcify: **exact_match** (job `fa17d92a-526e-4374-94f3-f4dea1fc8b5b`).
+- Live reads: `mezoToken()` = `0x7B7c000000000000000000000000000000000001`, `musdToken()` = canonical testnet MUSD, `getFeeDiscountBps(unstaked)` = `0`.
+- Live smoke: staked `1 MEZO` in tx `0xce392b...d85d` (`81,438` gas, below the `110,000` target), then unstaked in tx `0x6b3ca1...9184` (`41,295` gas). `totalMezoStaked()` returned to `0`; MEZO balance restored to `100e18`.
+- Deployment record: `contracts/deployments/31611.json` now has a `contracts` map with both M0 and M1 entries.
+
+### Step 1.1 deviations
+
+- Claim gas is not measured live yet because the deployer has `0 MUSD`; it will be exercised in the Step 1.5 E2E after MUSD is minted/borrowed.
+- The live MEZO precompile `transferFrom` is much cheaper than the OpenZeppelin mock used in unit gas reports (`stake` 81,438 gas live vs. 117,560 mock). The live number is the authoritative one.
