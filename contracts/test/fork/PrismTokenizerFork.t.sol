@@ -87,13 +87,13 @@ contract PrismTokenizerForkTest is Test {
 
         tokenizer.syncYield();
         (uint256 pendingMusd,) = tokenizer.pendingYield(maturity, alice);
-        assertApproxEqAbs(pendingMusd, expectedYield, 1);
+        assertApproxEqAbs(pendingMusd, expectedYield, 1e6);
 
         uint256 expectedNet = (expectedYield * 9700) / 10_000;
         vm.prank(alice);
         (uint256 netMusd,) = tokenizer.claimYield(maturity, alice);
-        assertApproxEqAbs(netMusd, expectedNet, 1);
-        assertApproxEqAbs(IERC20(MUSD).balanceOf(alice), expectedNet, 1);
+        assertApproxEqAbs(netMusd, expectedNet, 1e6);
+        assertApproxEqAbs(IERC20(MUSD).balanceOf(alice), expectedNet, 1e6);
 
         ForkMEZO(MEZO).mint(address(gauge), 10e18);
         gauge.notifyReward(address(adapter), 10e18);

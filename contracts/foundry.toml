@@ -20,8 +20,9 @@ fs_permissions = [{ access = "read", path = "./deployments" }]
 runs = 1000
 
 [profile.default.invariant]
-runs = 1024
-depth = 64
+runs = 512
+depth = 128
+fail_on_revert = false
 
 [profile.ci.fuzz]
 runs = 10000

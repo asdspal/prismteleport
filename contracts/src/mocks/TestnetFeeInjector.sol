@@ -90,7 +90,9 @@ contract TestnetFeeInjector is ERC20, ReentrancyGuard {
         if (amount == 0) return 0;
 
         storedClaimable[msg.sender] = 0;
-        totalClaimable -= amount;
+        // Flooring leaves at most 1 wei of dust per distribution; write it off
+        // instead of reverting on the aggregate counter.
+        totalClaimable = amount >= totalClaimable ? 0 : totalClaimable - amount;
         musdToken.safeTransfer(msg.sender, amount);
         emit YieldClaimed(msg.sender, amount);
     }
