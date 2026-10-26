@@ -14,7 +14,8 @@
         "jobId": "637cacf7-7d5a-4d55-8302-9d0c9b692aa3",
         "url": "https://sourcify.dev/server/verify-ui/jobs/637cacf7-7d5a-4d55-8302-9d0c9b692aa3",
         "verifiedAt": "2026-10-26T11:28:49Z"
-      }
+      },
+      "postDeploySourceNote": "Deployed M0 bytecode predates the 1-wei totalClaimable dust fix in the current source; the helper is testnet-only and the Milestone 1 live E2E uses a single yield injection. See SECURITY_M1.md section 5."
     },
     "PrismFeeStaking": {
       "address": "0xE5E0905F3c0b084cDc9221cA44146A6B4bD143a7",
@@ -222,6 +223,110 @@
           "addLiquidityGas": 500000
         }
       ]
+    }
+  },
+  "milestone1E2E": {
+    "date": "2026-10-26",
+    "proof": "deployments/31611-m1-proof.md",
+    "blockRange": [
+      16382297,
+      16382302
+    ],
+    "status": "5/5 confirmed",
+    "approvals": [
+      {
+        "token": "MEZO",
+        "spender": "0xE5E0905F3c0b084cDc9221cA44146A6B4bD143a7",
+        "tx": "0x66a6a749edbe50a44170081534fbf90cedc68dd4e5f567223b881ff9d8110ce7",
+        "block": 16382288
+      },
+      {
+        "token": "MUSD",
+        "spender": "0x7c2d76a696Fba9A12268f12d062AE04b7c4C20B3",
+        "tx": "0xd2a48587303e2165eef23215f85ee3f95095d0bcd30938ae93e1f0b8aeb66de7",
+        "block": 16382290
+      },
+      {
+        "token": "MUSD",
+        "spender": "0xa40D6d099c8e5e86841367Ed384EDD09859bA979",
+        "tx": "0x7174b3a3ce63914fbd539880a7a3976f357d1e6ebcfeb878e8c5466a02fdd4ce",
+        "block": 16382291
+      },
+      {
+        "token": "MUSD",
+        "spender": "0xd0F748a45708E77bf00384ED1C0ACC2e968517c3",
+        "tx": "0xd84beb912ce50dc98b8e924cf26343bb0f777f22ee7ef068e53b2ecd3cac5335",
+        "block": 16382293
+      }
+    ],
+    "transactions": [
+      {
+        "action": "stake 50 MEZO",
+        "contract": "PrismFeeStaking",
+        "tx": "0x3f2f6ab74cbf7cda2d44918f9c22c47394d7d2c2844474a441f57aff52e3c1fc",
+        "block": 16382297,
+        "gasUsed": 250000
+      },
+      {
+        "action": "mint 10 PT + 10 YT from 10 MUSD",
+        "contract": "PrismTokenizer",
+        "tx": "0xb2b5c48a3e728b2288bcfa62b7cfe15d27cd23a732ad94ca4197d97772037bbd",
+        "block": 16382298,
+        "gasUsed": 2500000
+      },
+      {
+        "action": "swap 10 MUSD for PT (4w)",
+        "contract": "PrismYieldAMM",
+        "tx": "0x74963574a27a7c34e703127a15fd617a8e41e30c2724f292c94f1ae1ac09d539",
+        "block": 16382300,
+        "gasUsed": 2500000
+      },
+      {
+        "action": "inject 5 MUSD weekly fee yield",
+        "contract": "TestnetFeeInjector",
+        "tx": "0x41bfbd33495506497b014300d64d2a95c3824b0a72664fbb692c1970a979308f",
+        "block": 16382301,
+        "gasUsed": 2500000
+      },
+      {
+        "action": "claim 4w YT yield",
+        "contract": "PrismTokenizer",
+        "tx": "0xd35b15be0988f57794f0eef134eaee1360ae798d1b2fa6150a094119faddaf9a",
+        "block": 16382302,
+        "gasUsed": 2500000
+      }
+    ],
+    "stateAtBlock16382302": {
+      "mezoBalance": "50000000000000000000",
+      "totalMezoStaked": "50000000000000000000",
+      "musdBalance": "175256263386542735543",
+      "pt4wBalance": "20027059843591451036",
+      "yt4wBalance": "510000000000000000000",
+      "smusdYieldIndex": "4950495049504950",
+      "smoothedExchangeRate": "1000500000000000000",
+      "pool4wReserveMusd": "509995000000000000000",
+      "pool4wReservePt": "489972940156408548964",
+      "ptPrice4w": "996866497009047025",
+      "pendingYield4wDeployer": [
+        "0",
+        "0"
+      ],
+      "adapterTotalSmusdControlled": "1010000000000000000000",
+      "adapterActiveMode": 0,
+      "pendingMusdDeployer": "6364417053950250"
+    },
+    "yieldFlow": {
+      "injectedMusd": "5000000000000000000",
+      "grossReleasedMusd": "257627803596685830",
+      "userNetMusd": "249898969488785256",
+      "stakingFeeMusd": "3864417053950287",
+      "treasuryFeeMusd": "3864417053950287"
+    },
+    "excludedFollowUp": {
+      "tx": "0x5be08cbda3ac530608a04f7030057889ea4608988f68c29c1f5047e710233d97",
+      "block": 16382307,
+      "status": 0,
+      "reason": "injectWeeklyFeeYield reverted: one-week injection cooldown active"
     }
   }
 }

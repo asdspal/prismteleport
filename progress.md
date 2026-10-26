@@ -223,3 +223,43 @@ The plan called this an ERC-4626 vault. Mainnet sMUSD is verified **not** ERC-46
 - `swapExactMusdForYt` returns `(ytOut, refundMusd)` and `previewSwapMusdForYt` returns `(ytOut, refundMusd, feeMusd)` rather than the plan's two-value preview; the extra refund is needed for exact min-out construction and for the UI to show net MUSD cost.
 - The maturity clamp leaves `P_PT` slightly below `1e18` until the maturity timestamp; at/after maturity it is exactly `1e18`. This is intentional to avoid a discontinuity in the final hour.
 - The live pools are seeded with `500` per side (not `1,000`) because the deployer only had `0.05 BTC`; the 1,800 MUSD quote is a view-only check and would exceed current 500 PT pool depth if executed.
+
+## Step 1.5 evidence
+
+- `contracts/test/invariant/PrismCoreInvariants.t.sol`: `PrismInvariantHandler` with 5 actors, 13 actions (`mintPy`, `redeemPy`, `redeemPtAfterMaturity`, `claimYield`, `swapMusdForPt`, `swapPtForMusd`, `swapMusdForYt`, `injectWeeklyFeeYield`, `evaluateAndSwitchMode`, `stakeMezo`, `unstakeMezo`, `warpTime`, `warpPastMaturity`).
+- Full run: **512 runs x 128 depth = 65,536 calls, 0 reverts, 4/4 invariants pass** (`invariant_adapterSolvencyCoversAllPtAndYield`, `invariant_ptEqualsYtSupplyBeforeMaturity`, `invariant_smoothedRateNeverExceedsSpotRate`, `invariant_feeStakingBalanceMatchesStakes`). Configuration: `contracts/foundry.toml` `[profile.default.invariant] runs = 512`, `depth = 128`, `fail_on_revert = false`.
+- **Real bug found and fixed:** `TestnetFeeInjector.claimYield()` underflowed `totalClaimable` by 1 wei after multiple distributions because aggregate and per-user claimable amounts were floored independently. Fixed in `src/mocks/TestnetFeeInjector.sol` with `totalClaimable = amount >= totalClaimable ? 0 : totalClaimable - amount;`; the 65,536-call suite is now revert-free.
+- `SECURITY_M1.md`: Slither 0.11.6 reports **0 High, 0 Critical, 25 Medium, 44 Low, 7 Informational**; all 25 Medium reviewed (7 `divide-before-multiply`, 6 `incorrect-equality`, 7 `reentrancy-no-eth`, 5 `unused-return`) and dispositioned as intentional/guarded/false positive. No unchecked Medium remains.
+- Coverage: `forge coverage --report summary --no-match-path "test/invariant/*"` gives **`src/core` 99.19% lines (616/621), 98.01% statements (691/705), 100% functions**; `PrismTokenizer` 98.14% lines, all other core contracts 100% lines.
+- Live 31611 E2E (5/5 `status = 1`, blocks `16382297`-`16382302`):
+  - Stake `50 MEZO`: `0x3f2f6ab74cbf7cda2d44918f9c22c47394d7d2c2844474a441f57aff52e3c1fc`.
+  - Mint `10 PT + 10 YT` from `10 MUSD`: `0xb2b5c48a3e728b2288bcfa62b7cfe15d27cd23a732ad94ca4197d97772037bbd`.
+  - Swap `10 MUSD -> 10.027059843591451036 PT`: `0x74963574a27a7c34e703127a15fd617a8e41e30c2724f292c94f1ae1ac09d539`.
+  - Inject `5 MUSD` fee yield: `0x41bfbd33495506497b014300d64d2a95c3824b0a72664fbb692c1970a979308f`; `yieldIndex = 4,950,495,049,504,950`.
+  - Claim 4-week YT yield: `0xd35b15be0988f57794f0eef134eaee1360ae798d1b2fa6150a094119faddaf9a`; gross release `0.257627803596685830 MUSD`, user net `0.249898969488785256 MUSD`, 1.5% staking + 1.5% treasury.
+  - Post-state: staked `50e18`; PT 4w `20.027059843591451036`; YT 4w `510e18`; 4w pool `509.995 MUSD / 489.972940156408548964 PT`; price `0.996866497009047025`; adapter `totalSmusdControlled = 1,010e18`, mode `0`; deployer MUSD `175.256263386542735543`; `pendingYield(4w, deployer) = (0, 0)`.
+  - Full proof, approvals, event topics, and MUSD reconciliation: `contracts/deployments/31611-m1-proof.md`; deployment record updated in `contracts/deployments/31611.json` under `milestone1E2E`.
+- `contracts/script/VerifyMilestone1OnChain.s.sol` encodes the same 5-call sequence for environments with working precompiles. It is not broadcast on 31611 because Foundry's revm cannot execute Mezo's native precompiles; live execution used `cast send` / `cast call`.
+- Verification gates: `forge test` **105/105 passing**; `forge lint` clean; `forge build` zero warnings.
+
+### Step 1.5 deviations
+
+- **Invariant 3 uses `yieldIndex` instead of ERC-4626 `convertToAssets`.** sMUSD is 1:1 principal + cumulative `yieldIndex`; `convertToAssets` does not exist. The bound is `smoothedExchangeRate() <= 1e18 + yieldIndex`.
+- **Invariant 1 includes MUSD held by the adapter and tokenizer** in addition to `totalSmusdControlled`, because claimed yield is parked in the adapter before the tokenizer pulls it.
+- **Live E2E uses `cast`, not `forge script`.** Same precompile limitation as Step 1.4. The Solidity script is kept as the canonical sequence.
+- **Testnet helper source mismatch:** the deployed `TestnetFeeInjector` bytecode predates the 1-wei `totalClaimable` fix. The helper is not a Milestone 1 core contract and the live E2E performs only one injection, so the deployed edge case is unreachable in this flow. Re-pointing core immutables would require redeploying the tokenizer, adapter, gauge, and AMM; deferred and documented in `SECURITY_M1.md` section 5.
+
+## Milestone 1 completion (2026-10-26)
+
+- Steps 1.1-1.5 are complete: `PrismFeeStaking`, `DualTrackAdapter` v2, `PrismTokenizer` + PT/YT + factory, `PrismYieldAMM`, invariant suite, Slither/coverage report, and live 5-transaction E2E.
+- Milestone 1 live contracts on Mezo Testnet 31611, all Sourcify `exact_match`:
+  - `PrismFeeStaking` `0xE5E0905F3c0b084cDc9221cA44146A6B4bD143a7`
+  - `DualTrackAdapter` `0xF4E0D1C1dD0a4D9d9b5e855C02bde6CCFbc1CbA5`
+  - `MockMUSDSavingsGauge` `0x3253cc93878f1790427e77b98c7Ce8Cc90276Fb2`
+  - `PrismSeriesFactory` `0x2b08B29E486Cba466eF57E9548Dc5A9D4A5ce961`
+  - `PrismTokenizer` `0x7c2d76a696Fba9A12268f12d062AE04b7c4C20B3`
+  - `PrismYieldAMM` `0xa40D6d099c8e5e86841367Ed384EDD09859bA979`
+  - 4-week PT/YT `0x6e01091848b7a95265a161a0D9eE337eB91451bE` / `0x35DDd231fb5c565dB0c121917a068FCB3925F5e0`
+  - 12-week PT/YT `0x7221256C639F3b71edD85b1586c3806e815C52EE` / `0x15865598A46B91528a9dd7C4CD55049e38F61223`
+- Test gates: **105/105 Foundry tests**, 65,536 invariant calls with 0 reverts, `src/core` 99.19% line coverage, 0 High/Critical Slither findings, clean `forge lint`/`forge build`.
+- Live gates: borrow + AMM seeding (Step 1.4) and 5/5 E2E transactions (Step 1.5), all confirmed; proof in `contracts/deployments/31611-m1-proof.md`.
