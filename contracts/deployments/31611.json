@@ -35,6 +35,40 @@
         "stakeTransaction": "0xce392b882e94e92ae5b36a5c47497a0b45cfb2416ebe7c98b13bfb407308d85d",
         "unstakeTransaction": "0x6b3ca12cbcf48c62a9159e7d7dfa979b0999390b74b701fb8f66573a61f99184"
       }
+    },
+    "MockMUSDSavingsGauge": {
+      "address": "0x3253cc93878f1790427e77b98c7Ce8Cc90276Fb2",
+      "smusd": "0xd0F748a45708E77bf00384ED1C0ACC2e968517c3",
+      "mezo": "0x7B7c000000000000000000000000000000000001",
+      "transactionHash": "0x547e6c75c3f9eedfcef60a42c624c5de4b6aa126f4449799cd50a193f2b90616",
+      "blockNumber": 16380872,
+      "gasUsed": 332718,
+      "sourcify": {
+        "match": "exact_match",
+        "jobId": "8c626fb4-0f1e-4a50-83be-20009ce14270",
+        "url": "https://sourcify.dev/server/verify-ui/jobs/8c626fb4-0f1e-4a50-83be-20009ce14270",
+        "verifiedAt": "2026-10-26T12:23:40Z"
+      }
+    },
+    "DualTrackAdapter": {
+      "address": "0x82af04cf8Ef50A94707Adb55182592e48c4a6CC8",
+      "smusd": "0xd0F748a45708E77bf00384ED1C0ACC2e968517c3",
+      "mezo": "0x7B7c000000000000000000000000000000000001",
+      "gauge": "0x3253cc93878f1790427e77b98c7Ce8Cc90276Fb2",
+      "unstakedFeeAprBps": 500,
+      "transactionHash": "0x2aacf12290db082581134169385624b044090c4d190173403d9b7750ba9b34c3",
+      "blockNumber": 16380874,
+      "gasUsed": 1118310,
+      "sourcify": {
+        "match": "exact_match",
+        "jobId": "061d4b76-171e-42a4-aefa-5623f6ec9624",
+        "url": "https://sourcify.dev/server/verify-ui/jobs/061d4b76-171e-42a4-aefa-5623f6ec9624",
+        "verifiedAt": "2026-10-26T12:23:40Z"
+      },
+      "liveSmoke": {
+        "activeMode": 0,
+        "totalSmusdControlled": "0"
+      }
     }
   }
 }
