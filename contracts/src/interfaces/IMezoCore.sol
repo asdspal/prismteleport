@@ -57,6 +57,12 @@ interface IMUSDSavingsGauge {
     function balanceOf(address account) external view returns (uint256);
 }
 
+/// @notice Minimal PrismFeeStaking surface used by PrismTokenizer.
+interface IPrismFeeStaking {
+    function getFeeDiscountBps(address user) external view returns (uint256);
+    function notifyRewardAmount(uint256 musdAmount) external;
+}
+
 /// @notice Mezo BorrowerOperations. Docs: https://github.com/mezo-org/musd
 interface IBorrowerOperations {
     function musd() external view returns (address);

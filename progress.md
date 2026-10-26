@@ -19,7 +19,7 @@ Plan: `memory-bank/implementation-plan.md` (M0–M5, 24 requirements `R-001`..`R
 | --- | --- | --- |
 | 1.1 | `PrismFeeStaking` MEZO precompile staking, fee tiers & MUSD revenue | DONE |
 | 1.2 | `DualTrackAdapter` unstaked sMUSD vs. gauge routing | DONE |
-| 1.3 | `PrismTokenizer`, PT & YT tokens with smoothed index | PENDING |
+| 1.3 | `PrismTokenizer`, PT & YT tokens with smoothed index | DONE |
 | 1.4 | `PrismYieldAMM` time-decay curve & flash-mint netting | PENDING |
 | 1.5 | 65,536-run invariants, Slither audit & live 31611 E2E | PENDING |
 
@@ -155,10 +155,11 @@ The plan called this an ERC-4626 vault. Mainnet sMUSD is verified **not** ERC-46
 - `contracts/test/unit/DualTrackAdapter.t.sol`: **18/18 passing** (incl. 2 fuzz suites at 1,000 runs). Coverage: **100% lines (65/65), 100% statements (70/70), 100% functions (12/12), 96.97% branches (32/33)** for `DualTrackAdapter`.
 - Gas: `evaluateAndSwitchMode()` max **124,222** (target `< 145,000`); `depositSmusd` max **110,956**.
 - `contracts/test/fork/DualTrackAdapterFork.t.sol`: **1/1 passing** on live 31611 state. Uses the deployed `TestnetFeeInjector` ABI, real testnet MUSD/sMUSD addresses, a mock MEZO at the canonical precompile, and a mock gauge; covers deposit, switch, harvest, withdraw, and unstake.
-- Local Anvil fork deploy succeeded: gauge `0x3253cc93878f1790427e77b98c7Ce8Cc90276Fb2`, adapter `0x82af04cf8Ef50A94707Adb55182592e48c4a6CC8` (same addresses as live because the deployer nonce sequence is identical).
-- **Live deploy (2026-10-26):** `MockMUSDSavingsGauge` at `0x3253cc93878f1790427e77b98c7Ce8Cc90276Fb2`, tx `0x547e6c75...b90616`, block `16380872`, gas `332,718`; `DualTrackAdapter` at `0x82af04cf8Ef50A94707Adb55182592e48c4a6CC8`, tx `0x2aacf122...b34c3`, block `16380874`, gas `1,118,310`.
-- Sourcify: **exact_match** for both (gauge job `8c626fb4-0f1e-4a50-83be-20009ce14270`, adapter job `061d4b76-171e-42a4-aefa-5623f6ec9624`).
+- Local Anvil fork deploy succeeded: gauge `0x3253cc93878f1790427e77b98c7Ce8Cc90276Fb2`, adapter `0xF4E0D1C1dD0a4D9d9b5e855C02bde6CCFbc1CbA5` (same addresses as live because the deployer nonce sequence is identical).
+- **Live deploy (2026-10-26):** `MockMUSDSavingsGauge` at `0x3253cc93878f1790427e77b98c7Ce8Cc90276Fb2`, tx `0x547e6c75...b90616`, block `16380872`, gas `332,718`; `DualTrackAdapter` re-deployed with `claimSmusdYield()` at `0xF4E0D1C1dD0a4D9d9b5e855C02bde6CCFbc1CbA5` (reusing the gauge), tx `0xf5c60df6...63f66`, block `16381003`, gas `1,273,983`.
+- Sourcify: **exact_match** for both (gauge job `8c626fb4-0f1e-4a50-83be-20009ce14270`, adapter v2 job `46d8765a-a20b-435a-b040-76288fdc4409`).
 - Live reads: `activeMode()` = `0`, `totalSmusdControlled()` = `0`, `tokenizer()` = zero, `gauge()` = mock gauge, `smusd()` = testnet `TestnetFeeInjector`.
+- `claimSmusdYield()` was added after the first live deploy because the adapter must pull `sMUSD.claimYield()` MUSD into the tokenizer; the final live adapter is the v2 address above.
 - Deployment record and `progress.md` updated; all `forge test` suites pass.
 
 ### Step 1.2 deviations
@@ -166,3 +167,32 @@ The plan called this an ERC-4626 vault. Mainnet sMUSD is verified **not** ERC-46
 - The plan did not specify how `gaugeAprBps` / `unstakedAprBps` reach the adapter. Added tokenizer-only `setAprs(uint256 gaugeMezoAprBps, uint256 unstakedFeeAprBps)`; `PrismTokenizer` will own the oracle/keeper handoff in Step 1.3. `evaluateAndSwitchMode()` remains permissionless and uses the last tokenizer-set values.
 - The testnet gauge is a mock, as allowed by the plan (`gauge == address(0)` and zero-emission epochs are supported).
 - `initializeTokenizer` is intentionally uncalled on live 31611; Step 1.3 will bind the deployed `PrismTokenizer`.
+
+## Step 1.3 evidence
+
+- `contracts/src/core/tokens/PrismPrincipalToken.sol` and `PrismYieldToken.sol`: `ERC20Permit` PT/YT with immutable `tokenizer` and `maturity`; `mint`/`burn` are tokenizer-only. `PrismYieldToken._update` calls `beforeYtTransfer(maturity, from, to)` before balances move (including mint/burn).
+- `contracts/src/core/PrismTokenizer.sol`: Thursday-aligned series (`maturity % 604800 == 0`), 1:1 `mintPyFromMusd` / `mintPyFromSmusd`, pre-maturity `redeemPyBeforeMaturity`, maturity `redeemPtAfterMaturity` returning **1 sMUSD per PT** (not `pt/rate`, because sMUSD is not ERC-4626), global MasterChef `accMusdPerYt` / `accMezoPerYt`, per-series user checkpoints, 3% fee (1.5% treasury + 1.5% `PrismFeeStaking`, reduced by `getFeeDiscountBps`), keeper-only `updateTrackAprs`, permissionless `evaluateTrackMode`, and permissionless `syncYield` / `claimYield`.
+- Smoothed index: a spot `yieldIndex` increase above 5 bps is split into an immediate 5 bps step plus `unvestedRateBuffer` vested linearly over 604,800 s in `smoothedExchangeRate()`. `lastRateYieldIndex` ensures the immediate step is applied only once per actual yieldIndex change, so repeated same-block `syncYield()` calls cannot fast-forward the buffer. `lastYieldIndex` + `unvestedMusdBuffer` apply the same 7-day smoothing to claimed MUSD yield.
+- `contracts/src/core/tokens/PrismSeriesFactory.sol`: deploys a PT/YT pair and binds `msg.sender` as the tokenizer. Added to keep `PrismTokenizer` below EIP-170 after token creation code grew the runtime to 25,429 B; final tokenizer runtime is **13,146 B** (factory runtime 13,024 B).
+- `contracts/test/unit/PrismTokenizer.t.sol`: **23/23 passing**, including 3 fuzz suites at 1,000 runs (`testFuzzMintAndMatureRedeem`, `testFuzzSmoothedRateIncreaseIsBounded`, `testFuzzYieldClaimConservesValue`). Coverage for `PrismTokenizer`: **98.14% lines (264/269), 97.75% statements (304/311), 79.35% branches (73/92), 100% functions (33/33)**; all token/factory contracts are 100% lines.
+- Gas (`forge test --gas-report`): `mintPyFromMusd` max **519,122**; `redeemPyBeforeMaturity` max **442,068**; `claimYield` max **430,386**; `syncYield` max **338,899**; `evaluateTrackMode` max **135,486**; `initializeSeries` ~**2.14M** (deploys two tokens through the factory).
+- `contracts/test/fork/PrismTokenizerFork.t.sol`: **1/1 passing** against live 31611. Uses the deployed `TestnetFeeInjector` at the real sMUSD address, etches mock MUSD/MEZO, the real deployed `PrismFeeStaking`, and covers mint, weekly fee injection, smoothed sync, MUSD+MEZO claims, maturity finalization, and 1:1 PT redemption.
+- Local Anvil fork deploy: factory `0x2b08B29E486Cba466eF57E9548Dc5A9D4A5ce961`, tokenizer `0x7c2d76a696Fba9A12268f12d062AE04b7c4C20B3` (identical to live because the deployer nonce sequence matches).
+- **Live deploy (2026-10-26):**
+  - `PrismSeriesFactory` `0x2b08B29E486Cba466eF57E9548Dc5A9D4A5ce961`, tx `0xc55ff1cce767d57178f3077ad18ee74a21f92f4d20b74d2de2ccd6ee49e921f9`, block `16381142`, gas `2,856,872`.
+  - `PrismTokenizer` `0x7c2d76a696Fba9A12268f12d062AE04b7c4C20B3`, tx `0x734689a770e146edbd808ae666b9fd8da5b18ed9fcd9a3967cbad4cd47930e53`, block `16381143`, gas `3,005,763`.
+  - 4-week series (maturity `1795046400`): PT `0x6e01091848b7a95265a161a0D9eE337eB91451bE`, YT `0x35DDd231fb5c565dB0c121917a068FCB3925F5e0`, init tx `0x0fc5d25e3261182f67b498c707f167cc7abbc7028d598e2f072ad665c7fe5195`, block `16381144`, gas `2,208,931`.
+  - 12-week series (maturity `1799884800`): PT `0x7221256C639F3b71edD85b1586c3806e815C52EE`, YT `0x15865598A46B91528a9dd7C4CD55049e38F61223`, init tx `0xa3e60fac98e91bf43d01625d00c97def29cb39edc6fc331b6a1f7207615ac5f5`, block `16381145`, gas `2,191,831`.
+  - `DualTrackAdapter.tokenizer()` is now `0x7c2d76a696Fba9A12268f12d062AE04b7c4C20B3` (bound atomically in the tokenizer constructor).
+- Sourcify: **exact_match** for all 6 contracts (factory match `57099808`, tokenizer `57099827`, 4w PT `57099843`, 4w YT `57099997`, 12w PT `57099850`, 12w YT `57099908`). The 4-week YT needed a retry because Sourcify's first job hit `cannot_fetch_bytecode`; retry job `18556e02-450c-4cdf-ba0c-8c51825b1d50` returned `exact_match`.
+- Live reads: `smoothedExchangeRate()` = `1000000000000000000`; `getActiveMaturities()` = `[1795046400, 1799884800]`; each series `rateAtInit` = `1e18`, `totalPt = totalYt = 0`, `finalized = false`.
+- Deployment record: `contracts/deployments/31611.json` includes factory, tokenizer, both series, token addresses, tx/block/gas, and Sourcify match/job IDs.
+
+### Step 1.3 deviations
+
+- **`PrismSeriesFactory` added.** The first tokenizer build embedded both token creation codes and exceeded EIP-170 (`25,429 B` runtime). The factory keeps tokenizer runtime at `13,146 B` and is permissionless: anyone can deploy a PT/YT pair bound to themselves as tokenizer; this is harmless because the tokens' mint/burn rights belong to the caller. The deploy script deploys the factory before the tokenizer.
+- **`smoothedExchangeRate()` returns the stored smoothed index plus vested buffer, not a simulated instant step.** The 5 bps immediate step is applied in `syncYield()` (mint/claim/redeem all sync first), and `lastRateYieldIndex` prevents repeated same-block syncs from applying it again. This makes the view idempotent and safe against buffer fast-forwarding.
+- **PT redemption is 1 sMUSD per PT**, per the verified sMUSD ABI (`R-002` interprets "1 PT = $1.00 MUSD principal"; sMUSD is 1:1 MUSD). No `convertToAssets` division.
+- **Yield after finalization** is sent to treasury (no active YT). Yield injected before maturity but still unvested at maturity stays in `unvestedMusdBuffer` and vests to treasury after finalization; this preserves the anti-sandwich smoothing at maturity.
+- **Fee routing:** MUSD fee share calls `PrismFeeStaking.notifyRewardAmount` (pull); MEZO fee share is transferred directly to the fee-staking address because `PrismFeeStaking` has no MEZO reward accounting.
+- **`syncYield()`/`claimYield()` are permissionless** and `updateTrackAprs` is keeper-only, so the adapter APRs are updated by the keeper but anyone can checkpoint yield.

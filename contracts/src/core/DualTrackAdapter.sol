@@ -4,7 +4,7 @@ pragma solidity 0.8.28;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {IMUSDSavingsGauge} from "../interfaces/IMezoCore.sol";
+import {IMUSDSavingsGauge, IMUSDSavingsRate} from "../interfaces/IMezoCore.sol";
 
 contract DualTrackAdapter is ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -29,6 +29,7 @@ contract DualTrackAdapter is ReentrancyGuard {
         TrackMode indexed previousMode, TrackMode indexed newMode, uint256 unstakedAprBps, uint256 gaugeAprBps
     );
     event GaugeRewardsHarvested(uint256 mezoAmount);
+    event SmusdYieldHarvested(uint256 musdAmount);
     event TokenizerInitialized(address indexed tokenizer);
     event AprsUpdated(uint256 unstakedAprBps, uint256 gaugeAprBps);
 
@@ -89,6 +90,19 @@ contract DualTrackAdapter is ReentrancyGuard {
         if (mezoHarvested != 0) mezo.safeTransfer(tokenizer, mezoHarvested);
         // forge-lint: disable-next-line(reentrancy-events)
         emit GaugeRewardsHarvested(mezoHarvested);
+    }
+
+    function claimSmusdYield() external nonReentrant returns (uint256 musdHarvested) {
+        require(tokenizer != address(0), "tokenizer not set");
+
+        IERC20 musd = IERC20(IMUSDSavingsRate(address(smusd)).musdToken());
+        uint256 before = musd.balanceOf(address(this));
+        // forge-lint: disable-next-line(reentrancy-no-eth, unused-return)
+        IMUSDSavingsRate(address(smusd)).claimYield();
+        musdHarvested = musd.balanceOf(address(this)) - before;
+        if (musdHarvested != 0) musd.safeTransfer(tokenizer, musdHarvested);
+        // forge-lint: disable-next-line(reentrancy-events)
+        emit SmusdYieldHarvested(musdHarvested);
     }
 
     function evaluateAndSwitchMode() external nonReentrant returns (TrackMode newMode) {

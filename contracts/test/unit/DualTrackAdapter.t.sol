@@ -7,6 +7,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {DualTrackAdapter} from "../../src/core/DualTrackAdapter.sol";
 import {MockMUSDSavingsGauge} from "../../src/mocks/MockMUSDSavingsGauge.sol";
 import {IMUSDSavingsGauge} from "../../src/interfaces/IMezoCore.sol";
+import {TestnetFeeInjector} from "../../src/mocks/TestnetFeeInjector.sol";
 
 contract MockSMUSD is ERC20 {
     constructor() ERC20("sMUSD", "sMUSD") {}
@@ -206,6 +207,32 @@ contract DualTrackAdapterTest is Test {
         assertEq(mezo.balanceOf(address(this)) - before, 10e18);
         assertEq(gauge.rewards(address(adapter)), 0);
         assertEq(adapter.harvestGaugeRewards(), 0);
+    }
+
+    function testClaimSmusdYieldForwardsMusd() public {
+        MockSMUSD musd = new MockSMUSD();
+        TestnetFeeInjector testnetSmusd = new TestnetFeeInjector(IERC20(address(musd)));
+        MockMUSDSavingsGauge yieldGauge = new MockMUSDSavingsGauge(IERC20(address(testnetSmusd)), IERC20(address(mezo)));
+        DualTrackAdapter yieldAdapter = new DualTrackAdapter(
+            IERC20(address(testnetSmusd)), IERC20(address(mezo)), IMUSDSavingsGauge(address(yieldGauge)), 500
+        );
+        yieldAdapter.initializeTokenizer(address(this));
+
+        musd.mint(address(this), 100e18);
+        musd.approve(address(testnetSmusd), 100e18);
+        testnetSmusd.deposit(100e18);
+        IERC20(address(testnetSmusd)).approve(address(yieldAdapter), 100e18);
+        yieldAdapter.depositSmusd(100e18);
+
+        musd.mint(address(this), 1e18);
+        musd.approve(address(testnetSmusd), 1e18);
+        testnetSmusd.injectWeeklyFeeYield(1e18);
+
+        uint256 before = musd.balanceOf(address(this));
+        uint256 harvested = yieldAdapter.claimSmusdYield();
+        assertEq(harvested, 1e18);
+        assertEq(musd.balanceOf(address(this)) - before, 1e18);
+        assertEq(IERC20(address(testnetSmusd)).balanceOf(address(yieldAdapter)), 100e18);
     }
 
     function testHarvestWithoutGaugeReverts() public {
