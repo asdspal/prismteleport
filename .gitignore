@@ -1,0 +1,25 @@
+# secrets
+.env
+.env.local
+.env.*.local
+
+# node
+node_modules/
+.pnpm-store/
+dist/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+
+# foundry
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+contracts/lib/*/.git
+
+# misc
+.DS_Store
+*.log
+test-results/
+playwright-report/
