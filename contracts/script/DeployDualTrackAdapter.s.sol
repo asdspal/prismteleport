@@ -18,13 +18,20 @@ contract DeployDualTrackAdapter is Script {
         address smusd = vm.envOr("MEZO_TESTNET_SMUSD_ADDRESS", TESTNET_SMUSD);
         uint256 unstakedFeeAprBps = vm.envOr("UNSTAKED_FEE_APR_BPS", uint256(500));
 
+        address existingGauge = vm.envOr("GAUGE_ADDRESS", address(0));
+
         vm.startBroadcast();
-        gauge = new MockMUSDSavingsGauge(IERC20(smusd), IERC20(mezo));
+        if (existingGauge == address(0)) {
+            gauge = new MockMUSDSavingsGauge(IERC20(smusd), IERC20(mezo));
+        } else {
+            gauge = MockMUSDSavingsGauge(existingGauge);
+        }
         adapter =
             new DualTrackAdapter(IERC20(smusd), IERC20(mezo), IMUSDSavingsGauge(address(gauge)), unstakedFeeAprBps);
         vm.stopBroadcast();
 
         console.log("MockMUSDSavingsGauge:", address(gauge));
+        console.log("reusedGauge:", existingGauge != address(0));
         console.log("DualTrackAdapter:", address(adapter));
         console.log("sMUSD:", smusd);
         console.log("MEZO:", mezo);

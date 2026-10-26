@@ -51,23 +51,109 @@
       }
     },
     "DualTrackAdapter": {
-      "address": "0x82af04cf8Ef50A94707Adb55182592e48c4a6CC8",
+      "address": "0xF4E0D1C1dD0a4D9d9b5e855C02bde6CCFbc1CbA5",
       "smusd": "0xd0F748a45708E77bf00384ED1C0ACC2e968517c3",
       "mezo": "0x7B7c000000000000000000000000000000000001",
       "gauge": "0x3253cc93878f1790427e77b98c7Ce8Cc90276Fb2",
       "unstakedFeeAprBps": 500,
-      "transactionHash": "0x2aacf12290db082581134169385624b044090c4d190173403d9b7750ba9b34c3",
-      "blockNumber": 16380874,
-      "gasUsed": 1118310,
+      "transactionHash": "0xf5c60df69ddc09d133aa5d14ad06d08e431b06701fc4159a96606fa1db263f66",
+      "blockNumber": 16381003,
+      "gasUsed": 1273983,
       "sourcify": {
         "match": "exact_match",
-        "jobId": "061d4b76-171e-42a4-aefa-5623f6ec9624",
-        "url": "https://sourcify.dev/server/verify-ui/jobs/061d4b76-171e-42a4-aefa-5623f6ec9624",
-        "verifiedAt": "2026-10-26T12:23:40Z"
+        "jobId": "46d8765a-a20b-435a-b040-76288fdc4409",
+        "url": "https://sourcify.dev/server/verify-ui/jobs/46d8765a-a20b-435a-b040-76288fdc4409",
+        "verifiedAt": "2026-10-26T12:42:00Z"
       },
       "liveSmoke": {
         "activeMode": 0,
         "totalSmusdControlled": "0"
+      }
+    },
+    "PrismSeriesFactory": {
+      "address": "0x2b08B29E486Cba466eF57E9548Dc5A9D4A5ce961",
+      "transactionHash": "0xc55ff1cce767d57178f3077ad18ee74a21f92f4d20b74d2de2ccd6ee49e921f9",
+      "blockNumber": 16381142,
+      "gasUsed": 2856872,
+      "sourcify": {
+        "match": "exact_match",
+        "matchId": "57099808",
+        "jobId": "2417d5d5-8eae-4a75-b8a7-aa5d83b97c52",
+        "url": "https://sourcify.dev/server/verify-ui/jobs/2417d5d5-8eae-4a75-b8a7-aa5d83b97c52",
+        "verifiedAt": "2026-10-26T12:41:58Z"
+      }
+    },
+    "PrismTokenizer": {
+      "address": "0x7c2d76a696Fba9A12268f12d062AE04b7c4C20B3",
+      "factory": "0x2b08B29E486Cba466eF57E9548Dc5A9D4A5ce961",
+      "adapter": "0xF4E0D1C1dD0a4D9d9b5e855C02bde6CCFbc1CbA5",
+      "musd": "0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503",
+      "smusd": "0xd0F748a45708E77bf00384ED1C0ACC2e968517c3",
+      "mezo": "0x7B7c000000000000000000000000000000000001",
+      "feeStaking": "0xE5E0905F3c0b084cDc9221cA44146A6B4bD143a7",
+      "treasury": "0xfCe44470aC130E66849Aaa23F81D092066ff501E",
+      "keeper": "0xfCe44470aC130E66849Aaa23F81D092066ff501E",
+      "transactionHash": "0x734689a770e146edbd808ae666b9fd8da5b18ed9fcd9a3967cbad4cd47930e53",
+      "blockNumber": 16381143,
+      "gasUsed": 3005763,
+      "sourcify": {
+        "match": "exact_match",
+        "matchId": "57099827",
+        "jobId": "2253444e-7bb3-4841-98d9-17b93e837533",
+        "url": "https://sourcify.dev/server/verify-ui/jobs/2253444e-7bb3-4841-98d9-17b93e837533",
+        "verifiedAt": "2026-10-26T12:42:11Z"
+      },
+      "series": [
+        {
+          "label": "4-week",
+          "maturity": 1795046400,
+          "initializeTransaction": "0x0fc5d25e3261182f67b498c707f167cc7abbc7028d598e2f072ad665c7fe5195",
+          "initializeBlock": 16381144,
+          "initializeGas": 2208931,
+          "ptToken": "0x6e01091848b7a95265a161a0D9eE337eB91451bE",
+          "ytToken": "0x35DDd231fb5c565dB0c121917a068FCB3925F5e0",
+          "ptSourcify": {
+            "match": "exact_match",
+            "matchId": "57099843",
+            "jobId": "edb6a2eb-3aa9-44ba-9da3-a4b5fcb5f43f",
+            "verifiedAt": "2026-10-26T12:42:17Z"
+          },
+          "ytSourcify": {
+            "match": "exact_match",
+            "matchId": "57099997",
+            "jobId": "18556e02-450c-4cdf-ba0c-8c51825b1d50",
+            "verifiedAt": "2026-10-26T12:43:29Z"
+          }
+        },
+        {
+          "label": "12-week",
+          "maturity": 1799884800,
+          "initializeTransaction": "0xa3e60fac98e91bf43d01625d00c97def29cb39edc6fc331b6a1f7207615ac5f5",
+          "initializeBlock": 16381145,
+          "initializeGas": 2191831,
+          "ptToken": "0x7221256C639F3b71edD85b1586c3806e815C52EE",
+          "ytToken": "0x15865598A46B91528a9dd7C4CD55049e38F61223",
+          "ptSourcify": {
+            "match": "exact_match",
+            "matchId": "57099850",
+            "jobId": "791ec7b6-f917-49a6-a848-f22f86f57580",
+            "verifiedAt": "2026-10-26T12:42:28Z"
+          },
+          "ytSourcify": {
+            "match": "exact_match",
+            "matchId": "57099908",
+            "jobId": "6a9f8aec-14c6-4323-9199-794e1b1b2374",
+            "verifiedAt": "2026-10-26T12:42:48Z"
+          }
+        }
+      ],
+      "liveSmoke": {
+        "smoothedExchangeRate": "1000000000000000000",
+        "activeMaturities": [
+          1795046400,
+          1799884800
+        ],
+        "adapterTokenizer": "0x7c2d76a696Fba9A12268f12d062AE04b7c4C20B3"
       }
     }
   }
