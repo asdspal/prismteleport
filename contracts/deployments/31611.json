@@ -277,7 +277,7 @@
       }
     },
     "PrismMicroVault": {
-      "address": "0x316F1CcC8f989Be27CC49F532d3Ea29A9884300E",
+      "address": "0x3cfFBCD4259ce3dCC49C2e2214C9b0CBcbAC7f78",
       "musd": "0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503",
       "smusd": "0xd0F748a45708E77bf00384ED1C0ACC2e968517c3",
       "borrowerOperations": "0xCdF7028ceAB81fA0C6971208e83fa7872994beE5",
@@ -285,16 +285,34 @@
       "priceFeed": "0x86bCF0841622a5dAC14A313a15f96A95421b9366",
       "amm": "0xa40D6d099c8e5e86841367Ed384EDD09859bA979",
       "tokenizer": "0x7c2d76a696Fba9A12268f12d062AE04b7c4C20B3",
-      "transactionHash": "0xa6022b1baa12a7c3fb25afd47481b10fc073e409d41036b55f9d866b0a379c5c",
-      "blockNumber": 16792466,
-      "gasUsed": 1348102,
-      "runtimeSize": 5847,
-      "sourcify": {
-        "match": "exact_match",
-        "url": "https://sourcify.dev/#/lookup/0x316F1CcC8f989Be27CC49F532d3Ea29A9884300E"
+      "transactionHash": "0xa91a77645977d50108cb9b3f7e0b42402d17c59a8c1ea0e356c96c5994b910b2",
+      "blockNumber": 16792564,
+      "gasUsed": 1434088,
+      "supersedes": {
+        "address": "0x316F1CcC8f989Be27CC49F532d3Ea29A9884300E",
+        "reason": "v1 had no microBorrowAndLockFor; the cross-chain TeleportHub must open the micro position in the borrower's own name so it never takes custody (Step 4.2).",
+        "transactionHash": "0xa6022b1baa12a7c3fb25afd47481b10fc073e409d41036b55f9d866b0a379c5c",
+        "blockNumber": 16792466
       },
       "masterTroveActive": false,
       "masterTroveNote": "The master Trove needs >=1,800 MUSD of debt, i.e. ~0.05 BTC of collateral, and the deployer holds only 0.002 BTC. The vault therefore ships inactive and anyone can call activateMasterTrove{value} (lazy activation, as the plan allows). The full micro flow is proven on a live 31611 fork and in unit/fuzz tests."
+    },
+    "TeleportHub": {
+      "address": "0x4992cE73548f42a4fc3C4685f965ea6C6d1AC401",
+      "musd": "0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503",
+      "borrowerOpsSignatures": "0xD757e3646AF370b15f32EB557F0F8380Df7D639e",
+      "microVault": "0x3cfFBCD4259ce3dCC49C2e2214C9b0CBcbAC7f78",
+      "amm": "0xa40D6d099c8e5e86841367Ed384EDD09859bA979",
+      "tokenizer": "0x7c2d76a696Fba9A12268f12d062AE04b7c4C20B3",
+      "nttManager": "0x5E668D912F69db0762CD0fE00647dA9fa6b29591",
+      "baseWormholeChainId": 10004,
+      "transactionHash": "0xd760234a5c9479471116a2d5f26c28e2f44ba708818d2a98ba4e2239fd601619",
+      "blockNumber": 16792574,
+      "gasUsed": 1352637,
+      "sourcify": {
+        "jobId": "8f152a3e-f0a1-4fa3-ab90-eddea31aacc3"
+      },
+      "notes": "Stateless, admin-free execution hub. The NTT manager address is the one named in the plan; Mezo Testnet has no canonical MUSD NTT deployment, so the MUSD-delivery leg is wired to an operator-provided manager and mocked in tests."
     }
   },
   "milestone1E2E": {

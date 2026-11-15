@@ -389,6 +389,38 @@ contract PrismMicroVaultTest is Test {
         assertEq(borrowerOps.masterCollateral(), 0.07 ether);
     }
 
+    function testMicroBorrowForKeepsCustodyWithTheBeneficiary() public {
+        // A router (the cross-chain hub) funds the position but never owns it.
+        vm.prank(bob);
+        uint256 profit = vault.microBorrowAndLockFor{value: 0.001 ether}(
+            alice, 25e18, maturity, 0, address(0), address(0)
+        );
+
+        PrismMicroVault.MicroPosition memory p = _position(alice);
+        assertEq(p.btcCollateral, 0.001 ether);
+        assertEq(p.musdDebt, 25e18);
+        assertEq(p.escrowedPt, 25e18);
+        // The profit PT goes to the beneficiary, not to the funder.
+        assertEq(IERC20(_series().ptToken).balanceOf(alice), profit);
+        assertEq(IERC20(_series().ptToken).balanceOf(bob), 0);
+
+        // Alice alone can close it and gets the BTC back.
+        uint256 btcBefore = alice.balance;
+        musd.mint(alice, 25e18);
+        vm.startPrank(alice);
+        musd.approve(address(vault), 25e18);
+        (uint256 btcReturned, ) = vault.closeMicroPosition();
+        vm.stopPrank();
+        assertEq(btcReturned, 0.001 ether);
+        assertEq(alice.balance, btcBefore + 0.001 ether);
+    }
+
+    function testMicroBorrowForRejectsZeroBeneficiary() public {
+        vm.prank(bob);
+        vm.expectRevert(bytes("beneficiary=0"));
+        vault.microBorrowAndLockFor{value: 0.001 ether}(address(0), 25e18, maturity, 0, address(0), address(0));
+    }
+
     function testCloseWithoutPositionReverts() public {
         vm.prank(bob);
         vm.expectRevert(PrismMicroVault.NoPosition.selector);

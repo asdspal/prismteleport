@@ -1,0 +1,19 @@
+{
+  "chainId": 84532,
+  "network": "Base Sepolia",
+  "contracts": {
+    "TeleportSpoke": {
+      "address": null,
+      "status": "NOT_DEPLOYED",
+      "reason": "The deployer EOA 0xfCe44470aC130E66849Aaa23F81D092066ff501E holds 0 ETH on Base Sepolia, so the spoke cannot be broadcast from this environment. The contract is implemented and unit-tested (escrow, expired-intent refund, MUSD repay over NTT) and script/DeployTeleportSuite.s.sol:DeployBaseSpoke is ready to run as soon as the deployer is funded.",
+      "script": "script/DeployTeleportSuite.s.sol:DeployBaseSpoke",
+      "requiredEnv": [
+        "BASE_BTC_TOKEN",
+        "BASE_MUSD_TOKEN",
+        "BASE_NTT_MANAGER",
+        "TELEPORT_HUB_ADDRESS"
+      ],
+      "hubOnMezo": "0x4992cE73548f42a4fc3C4685f965ea6C6d1AC401"
+    }
+  }
+}

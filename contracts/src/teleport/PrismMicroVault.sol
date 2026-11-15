@@ -71,6 +71,7 @@ contract PrismMicroVault is ReentrancyGuard {
         uint256 ptOut,
         uint256 profitToUser
     );
+    event MicroFundedBy(address indexed funder, address indexed beneficiary, uint256 btcDeposited);
     event MicroPositionClosed(
         address indexed user,
         uint256 maturity,
@@ -149,11 +150,40 @@ contract PrismMicroVault is ReentrancyGuard {
         address upperHint,
         address lowerHint
     ) external payable nonReentrant returns (uint256 profitToUser) {
+        return _microBorrowAndLock(msg.sender, msg.sender, musdBorrowAmount, maturity, minPtOut, upperHint, lowerHint);
+    }
+
+    /// @notice Opens a micro position **for someone else**, so a router (for
+    /// example the cross-chain TeleportHub) can never take custody: the position,
+    /// its escrowed PT and its BTC are keyed to `onBehalfOf`, who closes it
+    /// directly. Griefing is impossible by construction, because the only way to
+    /// open a position is to hand over BTC.
+    function microBorrowAndLockFor(
+        address onBehalfOf,
+        uint256 musdBorrowAmount,
+        uint256 maturity,
+        uint256 minPtOut,
+        address upperHint,
+        address lowerHint
+    ) external payable nonReentrant returns (uint256 profitToUser) {
+        require(onBehalfOf != address(0), "beneficiary=0");
+        return _microBorrowAndLock(onBehalfOf, msg.sender, musdBorrowAmount, maturity, minPtOut, upperHint, lowerHint);
+    }
+
+    function _microBorrowAndLock(
+        address beneficiary,
+        address funder,
+        uint256 musdBorrowAmount,
+        uint256 maturity,
+        uint256 minPtOut,
+        address upperHint,
+        address lowerHint
+    ) internal returns (uint256 profitToUser) {
         if (!masterActive) revert MasterInactive();
         if (msg.value < MIN_MICRO_DEPOSIT) revert DepositTooSmall();
         if (musdBorrowAmount < MIN_MICRO_BORROW) revert BorrowTooSmall();
 
-        MicroPosition storage p = positions[msg.sender];
+        MicroPosition storage p = positions[beneficiary];
         if (p.maturity != 0 && p.maturity != maturity) revert MaturityMismatch();
 
         uint256 price = priceFeed.fetchPrice();
@@ -185,9 +215,10 @@ contract PrismMicroVault is ReentrancyGuard {
         totalMicroDebt += musdBorrowAmount;
         totalEscrowedPt += musdBorrowAmount;
 
-        if (profitToUser > 0) pt.safeTransfer(msg.sender, profitToUser);
+        if (profitToUser > 0) pt.safeTransfer(beneficiary, profitToUser);
 
-        emit MicroBorrowAndLock(msg.sender, maturity, msg.value, musdBorrowAmount, ptOut, profitToUser);
+        emit MicroBorrowAndLock(beneficiary, maturity, msg.value, musdBorrowAmount, ptOut, profitToUser);
+        if (funder != beneficiary) emit MicroFundedBy(funder, beneficiary, msg.value);
     }
 
     /// @notice Closes a micro position and returns 100% of the user's BTC.
