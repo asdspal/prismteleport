@@ -21,6 +21,7 @@ import {
   mezoTestnet,
 } from "@mezo-org/passport/dist/src/constants";
 import {
+  injectedWallet,
   metaMaskWallet,
   rabbyWallet,
   rainbowWallet,
@@ -80,7 +81,25 @@ const PRISM_WALLETS: WalletList = [
     groupName: "Ethereum",
     wallets: [metaMaskWallet, rabbyWallet, rainbowWallet, walletConnectWallet],
   },
-] as const;
+] as WalletList;
+
+/**
+ * Minimal list used when WalletConnect is not configured.
+ *
+ * The vendor bundle's SDK-backed connectors (WalletConnect, the MetaMask SDK,
+ * Mezo Passport's orangekit/Gelato layer) can throw while they initialise, and an
+ * exception in one connector aborts the whole connect modal — MetaMask included.
+ * `injectedWallet` talks to `window.ethereum` directly, so no SDK is loaded and
+ * MetaMask, Rabby and Brave all work.
+ */
+const INJECTED_ONLY_WALLETS: WalletList = [
+  { groupName: "Browser wallet", wallets: [injectedWallet] },
+];
+
+/** WalletConnect needs a real project id; without one, stay SDK-free. */
+const ACTIVE_WALLETS: WalletList = WALLETCONNECT_ENABLED
+  ? PRISM_WALLETS
+  : INJECTED_ONLY_WALLETS;
 
 export function PrismWeb3Provider({ children }: { children: ReactNode }) {
   // Created lazily on the client: wallet connectors touch `window` and must not
@@ -92,7 +111,7 @@ export function PrismWeb3Provider({ children }: { children: ReactNode }) {
       walletConnectProjectId: WALLETCONNECT_PROJECT_ID,
       mezoNetwork: "testnet",
       chains: [mezoTestnet, mezoMainnet],
-      wallets: PRISM_WALLETS,
+      wallets: ACTIVE_WALLETS,
       ssr: true,
     }),
   );
