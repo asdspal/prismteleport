@@ -1,6 +1,10 @@
 "use client";
 
-import { RainbowKitProvider, type WalletList } from "@rainbow-me/rainbowkit";
+import {
+  darkTheme,
+  RainbowKitProvider,
+  type WalletList,
+} from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
 // Deep imports on purpose: the package barrel re-exports its own UI components,
 // which pull in `@mezo-org/mezo-clay` and that bundle reads the React 18-only
@@ -80,7 +84,16 @@ export function PrismWeb3Provider({ children }: { children: ReactNode }) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider initialChain={mezoTestnet}>
+        <RainbowKitProvider
+          initialChain={mezoTestnet}
+          theme={darkTheme({
+            // Match the terminal's palette: cyan on near-black clears WCAG AA,
+            // which RainbowKit's default accent does not.
+            accentColor: "#22D3EE",
+            accentColorForeground: "#0B0E14",
+            borderRadius: "small",
+          })}
+        >
           <JudgeModeProvider>{children}</JudgeModeProvider>
         </RainbowKitProvider>
       </QueryClientProvider>

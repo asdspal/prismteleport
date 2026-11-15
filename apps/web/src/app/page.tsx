@@ -124,7 +124,12 @@ export default function HomePage() {
           </span>
         </header>
 
-        <div className="mt-4 overflow-x-auto">
+        <div
+          className="mt-4 overflow-x-auto"
+          tabIndex={0}
+          role="region"
+          aria-label="Live series comparison table"
+        >
           <table className="w-full min-w-[640px] border-collapse text-left">
             <thead>
               <tr className="font-mono text-[10px] uppercase tracking-[0.14em] text-text-tertiary">

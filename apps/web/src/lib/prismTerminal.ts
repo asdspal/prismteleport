@@ -83,6 +83,33 @@ export const FEE_INJECTOR_ABI = parseAbi([
   "function yieldPerShare() view returns (uint256)",
 ]);
 
+/** MEZO staking + fee-rebate portal (R-010). */
+export const FEE_STAKING_ABI = parseAbi([
+  "function stake(uint256 amount)",
+  "function stakeWithPermit(uint256 amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s)",
+  "function unstake(uint256 amount)",
+  "function claimRewards() returns (uint256 amount)",
+  "function pendingMusd(address user) view returns (uint256)",
+  "function getFeeDiscountBps(address user) view returns (uint256)",
+  "function stakes(address) view returns (uint128 amount, uint64 lastStakeTimestamp, uint128 rewardDebt, uint128 claimableMusd)",
+  "function totalMezoStaked() view returns (uint256)",
+  "function TIER_1() view returns (uint256)",
+  "function TIER_2() view returns (uint256)",
+  "function TIER_3() view returns (uint256)",
+  "function DISCOUNT_1_BPS() view returns (uint256)",
+  "function DISCOUNT_2_BPS() view returns (uint256)",
+  "function DISCOUNT_3_BPS() view returns (uint256)",
+  "function DISCOUNT_COOLDOWN() view returns (uint256)",
+]);
+
+/** MEZO is a Mezo precompile token; 18 decimals like the rest of the stack. */
+export const MEZO_TOKEN = "0x7B7c000000000000000000000000000000000001" as Address;
+
+export const ERC20_PERMIT_ABI = parseAbi([
+  "function nonces(address) view returns (uint256)",
+  "function eip712Domain() view returns (bytes1 fields, string name, string version, uint256 chainId, address verifyingContract, bytes32 salt, uint256[] extensions)",
+]);
+
 export const ERC20_ABI = parseAbi([
   "function balanceOf(address) view returns (uint256)",
   "function approve(address, uint256) returns (bool)",
@@ -294,6 +321,60 @@ export function smoothedVsSpotBps(smoothedWei: bigint, spotWei: bigint): number 
 
 export function adapterModeLabel(mode: number | bigint): "UNSTAKED_SMUSD" | "GAUGE_STAKED_MEZO" {
   return Number(mode) === 1 ? "GAUGE_STAKED_MEZO" : "UNSTAKED_SMUSD";
+}
+
+/**
+ * Wallets disagree on the EIP-2612 `v` value (`0/1` vs `27/28`); the precompile
+ * verifier expects the classic `27/28`, so normalise before calling
+ * `PrismFeeStaking.stakeWithPermit` (Step 3.4 risk).
+ */
+export function normalizeV(v: number | bigint): 27 | 28 {
+  const value = Number(v);
+  if (value === 0 || value === 1) return (value + 27) as 27 | 28;
+  if (value === 27 || value === 28) return value as 27 | 28;
+  throw new RangeError(`unexpected signature v value: ${value}`);
+}
+
+/** Splits a 65-byte signature into the `(v, r, s)` the permit path needs. */
+export function splitSignature(signature: Hex): { v: 27 | 28; r: Hex; s: Hex } {
+  const hex = signature.slice(2);
+  if (hex.length !== 130) throw new RangeError("signature must be 65 bytes");
+  return {
+    r: `0x${hex.slice(0, 64)}` as Hex,
+    s: `0x${hex.slice(64, 128)}` as Hex,
+    v: normalizeV(Number.parseInt(hex.slice(128, 130), 16)),
+  };
+}
+
+/** MEZO fee-discount tiers, matching PrismFeeStaking's constants. */
+export const STAKE_TIERS = [
+  { stakeMusd: "10", discountBps: 1_000, label: "10 MEZO → 10% off" },
+  { stakeMusd: "100", discountBps: 2_500, label: "100 MEZO → 25% off" },
+  { stakeMusd: "500", discountBps: 5_000, label: "500 MEZO → 50% off" },
+] as const;
+
+/** Prohibited jurisdictions the compliance attestation covers (R-023). */
+export const PROHIBITED_JURISDICTIONS = [
+  "North Korea (KP)",
+  "Cuba (CU)",
+  "Iran (IR)",
+  "Iraq (IQ)",
+  "China (CN)",
+  "Syria (SY)",
+  "Crimea, Donetsk and Luhansk regions",
+] as const;
+
+/** Remaining flash-stake guard time as `"XXm XXs"` (STRIDE-03). */
+export function formatCooldown(
+  lastStakeTimestamp: number | bigint,
+  nowSeconds: number,
+  cooldownSeconds = 3_600,
+): string | undefined {
+  const remaining = Number(lastStakeTimestamp) + cooldownSeconds - nowSeconds;
+  if (remaining <= 0) return undefined;
+  const minutes = Math.floor(remaining / 60);
+  const seconds = remaining % 60;
+  return `${minutes}m ${seconds.toString().padStart(2, "0")}s`;
 }
 
 export const EXPLORER_TX_URL = (hash: string) =>

@@ -15,6 +15,8 @@ export default defineConfig({
     // Node for pure logic tests; the .tsx suites opt into jsdom via
     // `// @vitest-environment jsdom` at the top of the file.
     environment: "node",
+    // A real origin so jsdom exposes localStorage (the compliance attestation).
+    environmentOptions: { jsdom: { url: "http://localhost:3000/" } },
     include: ["test/**/*.test.ts", "test/**/*.test.tsx"],
   },
 });
