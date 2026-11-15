@@ -13,7 +13,7 @@
     "build": "tsc --noEmit"
   },
   "dependencies": {
-    "viem": "2.21.54"
+    "viem": "2.57.19"
   },
   "devDependencies": {
     "typescript": "^5.7.2",
