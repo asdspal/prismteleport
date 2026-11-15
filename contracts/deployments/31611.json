@@ -223,6 +223,36 @@
           "addLiquidityGas": 500000
         }
       ]
+    },
+    "PrismBorrowLockRouter": {
+      "address": "0x0920526aACbe99A3f3c72D199BED6BED8C6fc50a",
+      "borrowerOpsSignatures": "0xD757e3646AF370b15f32EB557F0F8380Df7D639e",
+      "troveManager": "0xE47c80e8c23f6B4A1aE41c34837a0599D5D16bb0",
+      "priceFeed": "0x86bCF0841622a5dAC14A313a15f96A95421b9366",
+      "amm": "0xa40D6d099c8e5e86841367Ed384EDD09859bA979",
+      "musd": "0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503",
+      "transactionHash": "0x79f772b59f3c2dfca1a9c6a66ed7c1168c5cffec3cae405be6cac9add10853d7",
+      "blockNumber": 16787340,
+      "gasUsed": 1613263,
+      "runtimeSize": 7033,
+      "sourcify": {
+        "match": "exact_match",
+        "jobId": "3b6b7a81-4947-4fd2-bd2f-d26426392960",
+        "url": "https://sourcify.dev/server/verify-ui/jobs/3b6b7a81-4947-4fd2-bd2f-d26426392960"
+      },
+      "phase4ManualCheck": {
+        "musdBalanceOfRouter": "0",
+        "btcBalanceOfRouter": "0",
+        "domainSeparator": "0x2dfce5b380e1346cd7a1d28170d8437771689e1c5dac88acccdc4725cbae0928",
+        "minIcrNormal": "1500000000000000000",
+        "minIcrRecovery": "1650000000000000000",
+        "maxRelayerFeeBps": 100,
+        "previewBorrowAndLock12w": {
+          "ptOut": "1813862626409817352074",
+          "newIcr": "734882486799937023",
+          "fixedApyBps": 489
+        }
+      }
     }
   },
   "milestone1E2E": {
