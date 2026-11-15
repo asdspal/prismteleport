@@ -26,8 +26,21 @@ export const env = {
     process.env.MEZO_MAINNET_RPC_URL_FALLBACK ??
     "https://mainnet.mezo.public.validationcloud.io",
   relayerPrivateKey: process.env.RELAYER_PRIVATE_KEY,
+  databaseUrl:
+    process.env.DATABASE_URL ??
+    "postgresql://postgres:postgres@localhost:5432/prism_teleport",
   redisUrl: process.env.REDIS_URL ?? "redis://localhost:6379",
   corsOrigins: origins(process.env.CORS_ALLOWED_ORIGINS),
+  mezoTestnetRouter:
+    (process.env.MEZO_TESTNET_PRISM_BORROW_LOCK_ROUTER as `0x${string}` | undefined) ??
+    "0x7D536A4d33446d556CC8f6758ada141a17e0968b",
+  mezoMainnetRouter: process.env.MEZO_MAINNET_PRISM_BORROW_LOCK_ROUTER as
+    | `0x${string}`
+    | undefined,
+  eip7702Whitelist: (process.env.RELAYER_7702_WHITELIST ?? "")
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean),
   mezoTestnetHintHelpers:
     (process.env.MEZO_TESTNET_HINT_HELPERS as `0x${string}` | undefined) ??
     "0x4e4cBA3779d56386ED43631b4dCD6d8EacEcBCF6",

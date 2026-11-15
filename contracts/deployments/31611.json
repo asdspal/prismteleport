@@ -225,32 +225,54 @@
       ]
     },
     "PrismBorrowLockRouter": {
-      "address": "0x0920526aACbe99A3f3c72D199BED6BED8C6fc50a",
+      "address": "0x7D536A4d33446d556CC8f6758ada141a17e0968b",
       "borrowerOpsSignatures": "0xD757e3646AF370b15f32EB557F0F8380Df7D639e",
       "troveManager": "0xE47c80e8c23f6B4A1aE41c34837a0599D5D16bb0",
       "priceFeed": "0x86bCF0841622a5dAC14A313a15f96A95421b9366",
       "amm": "0xa40D6d099c8e5e86841367Ed384EDD09859bA979",
       "musd": "0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503",
-      "transactionHash": "0x79f772b59f3c2dfca1a9c6a66ed7c1168c5cffec3cae405be6cac9add10853d7",
-      "blockNumber": 16787340,
-      "gasUsed": 1613263,
-      "runtimeSize": 7033,
+      "transactionHash": "0x3065c91fe32d018f5c5c4397eb2af0be001fd467c22c76f3831f97d98990cb08",
+      "blockNumber": 16788640,
+      "gasUsed": 1615610,
+      "runtimeSize": 7044,
+      "supersedes": {
+        "address": "0x0920526aACbe99A3f3c72D199BED6BED8C6fc50a",
+        "reason": "v1 lacked receive(): Mezo ActivePool pings the MUSD recipient with a zero-value call on every debt-only trove adjust, so the real withdrawMUSDWithSignature path reverted with \"Sending BTC failed\" (BorrowerOperations._moveTokensAndCollateralfromAdjustment -> ActivePool.sendCollateral(recipient, 0) -> SendCollateral). The M2.1 fork-test mock did not reproduce the ping, so the gap only surfaced in the M2.3 live-state fork test.",
+        "transactionHash": "0x79f772b59f3c2dfca1a9c6a66ed7c1168c5cffec3cae405be6cac9add10853d7",
+        "blockNumber": 16787340,
+        "sourcify": {
+          "match": "exact_match",
+          "jobId": "3b6b7a81-4947-4fd2-bd2f-d26426392960",
+          "url": "https://sourcify.dev/server/verify-ui/jobs/3b6b7a81-4947-4fd2-bd2f-d26426392960"
+        },
+        "phase4ManualCheck": {
+          "musdBalanceOfRouter": "0",
+          "btcBalanceOfRouter": "0",
+          "domainSeparator": "0x2dfce5b380e1346cd7a1d28170d8437771689e1c5dac88acccdc4725cbae0928",
+          "minIcrNormal": "1500000000000000000",
+          "minIcrRecovery": "1650000000000000000",
+          "maxRelayerFeeBps": 100,
+          "previewBorrowAndLock12w": {
+            "ptOut": "1813862626409817352074",
+            "newIcr": "734882486799937023",
+            "fixedApyBps": 489
+          }
+        }
+      },
       "sourcify": {
         "match": "exact_match",
-        "jobId": "3b6b7a81-4947-4fd2-bd2f-d26426392960",
-        "url": "https://sourcify.dev/server/verify-ui/jobs/3b6b7a81-4947-4fd2-bd2f-d26426392960"
+        "jobId": "2c3156f1-fae2-4868-8565-32a567490152",
+        "url": "https://sourcify.dev/server/verify-ui/jobs/2c3156f1-fae2-4868-8565-32a567490152"
       },
       "phase4ManualCheck": {
+        "emptyCallActivePoolPing": "0x (receive() accepts the zero-value recipient ping)",
         "musdBalanceOfRouter": "0",
         "btcBalanceOfRouter": "0",
-        "domainSeparator": "0x2dfce5b380e1346cd7a1d28170d8437771689e1c5dac88acccdc4725cbae0928",
-        "minIcrNormal": "1500000000000000000",
-        "minIcrRecovery": "1650000000000000000",
-        "maxRelayerFeeBps": 100,
+        "domainSeparator": "0xa5096da766d89e44fef07b4097d423c52ab074b16844b3231a94563dbdf04945",
         "previewBorrowAndLock12w": {
-          "ptOut": "1813862626409817352074",
-          "newIcr": "734882486799937023",
-          "fixedApyBps": 489
+          "ptOut": "1813847049156678082108",
+          "newIcr": "739979527080772960",
+          "fixedApyBps": 499
         }
       }
     }

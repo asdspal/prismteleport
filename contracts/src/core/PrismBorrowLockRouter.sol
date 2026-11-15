@@ -90,6 +90,14 @@ contract PrismBorrowLockRouter is EIP712, ReentrancyGuard {
         musd = _musd;
     }
 
+    /// @dev Mezo's ActivePool pings the MUSD recipient with a zero-value call on
+    /// every debt-only trove adjust (BorrowerOperations._moveTokensAndCollateral
+    /// fromAdjustment -> ActivePool.sendCollateral(recipient, 0)); without a
+    /// receive() that call reverts with "Sending BTC failed" and the real
+    /// withdrawMUSDWithSignature path can never reach the router. Any *real*
+    /// BTC is still caught by the zero-balance requires in the entrypoints.
+    receive() external payable {}
+
     /// @notice Atomically borrow MUSD against an existing Trove and lock it into PT-sMUSD.
     function borrowAndLockFixedYield(
         BorrowLockParams calldata p,

@@ -86,6 +86,10 @@ export interface TroveHints {
 /**
  * Compute exact SortedTroves insertion hints. Runs in Node or the browser:
  * only needs a viem PublicClient (direct RPC or Multicall3-capable transport).
+ *
+ * `numTrials` overrides the official formula (fork tests lower it: fewer
+ * random reads on an anvil fork, still exact hints because
+ * findInsertPosition corrects from whatever approx seed is returned).
  */
 export async function computeTroveHints(
   client: Pick<PublicClient, "readContract">,
@@ -93,6 +97,7 @@ export async function computeTroveHints(
   collateralBtcWei: bigint,
   debtMusdWei: bigint,
   contracts: HintContracts = MEZO_HINT_CONTRACTS[chainId],
+  numTrials?: number,
 ): Promise<TroveHints> {
   if (!contracts) throw new RangeError(`unsupported chainId: ${chainId}`);
   const nicr = computeNicr(collateralBtcWei, debtMusdWei);
@@ -107,7 +112,7 @@ export async function computeTroveHints(
     return { nicr, upperHint: ZERO_ADDRESS, lowerHint: ZERO_ADDRESS };
   }
 
-  const trials = BigInt(approxHintTrials(size));
+  const trials = BigInt(numTrials ?? approxHintTrials(size));
   const [approx] = await client.readContract({
     address: contracts.hintHelpers,
     abi: HINT_HELPERS_ABI,

@@ -1,9 +1,9 @@
-import Redis from "ioredis";
 import type { FastifyInstance } from "fastify";
 import type { Address } from "viem";
 import { computeTroveHints, type HintContracts } from "@prism-teleport/sdk";
 import { env } from "../config";
 import { createMezoClients } from "../lib/mezoClient";
+import { redisClient } from "../lib/redis";
 
 /** OpenAPI HintsResponse.estimatedGas example; measured with live hints. */
 const ESTIMATED_GAS = 590_000;
@@ -11,28 +11,6 @@ const CACHE_TTL_SECONDS = 5;
 
 const PARAM_PATTERN = /^[0-9]+$/;
 const CHAIN_IDS = new Set([31611, 31612]);
-
-type RedisClient = Pick<Redis, "get" | "set" | "quit">;
-
-let redis: Redis | undefined;
-
-function cacheClient(): RedisClient | undefined {
-  if (redis) return redis;
-  try {
-    redis = new Redis(env.redisUrl, {
-      lazyConnect: true,
-      maxRetriesPerRequest: 1,
-      connectTimeout: 500,
-    });
-    redis.on("error", () => {
-      /* cache is best-effort; errors swallowed per-command */
-    });
-    void redis.connect().catch(() => undefined);
-    return redis;
-  } catch {
-    return undefined;
-  }
-}
 
 export function contractsFor(chainId: number): HintContracts {
   if (chainId === 31611) {
@@ -90,14 +68,12 @@ export async function registerHintsRoutes(app: FastifyInstance): Promise<void> {
     const { chainId, collateralBtcWei, debtMusdWei } = parsed;
     const cacheKey = `hints:${chainId}:${collateralBtcWei}:${debtMusdWei}`;
 
-    const client = cacheClient();
-    if (client) {
-      try {
-        const hit = await client.get(cacheKey);
-        if (hit) return reply.code(200).send(JSON.parse(hit));
-      } catch {
-        /* best-effort cache */
-      }
+    const cache = redisClient();
+    try {
+      const hit = await cache.get(cacheKey);
+      if (hit) return reply.code(200).send(JSON.parse(hit));
+    } catch {
+      /* best-effort cache */
     }
 
     const clients = createMezoClients();
@@ -120,12 +96,10 @@ export async function registerHintsRoutes(app: FastifyInstance): Promise<void> {
       estimatedGas: ESTIMATED_GAS,
     };
 
-    if (client) {
-      try {
-        await client.set(cacheKey, JSON.stringify(body), "EX", CACHE_TTL_SECONDS);
-      } catch {
-        /* best-effort cache */
-      }
+    try {
+      await cache.set(cacheKey, JSON.stringify(body), "EX", CACHE_TTL_SECONDS);
+    } catch {
+      /* best-effort cache */
     }
 
     request.log.info(

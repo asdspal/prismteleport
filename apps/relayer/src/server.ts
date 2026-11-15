@@ -9,6 +9,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { env } from "./config";
 import { createMezoClients } from "./lib/mezoClient";
 import { registerHintsRoutes } from "./routes/hints";
+import { registerRelayRoutes } from "./routes/relay";
 
 function relayerAddress(): Address | undefined {
   const explicit = process.env.RELAYER_ADDRESS;
@@ -70,6 +71,7 @@ export async function buildServer(): Promise<FastifyInstance> {
   });
 
   await registerHintsRoutes(app);
+  await registerRelayRoutes(app);
 
   return app;
 }

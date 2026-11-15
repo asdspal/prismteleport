@@ -114,6 +114,10 @@ contract MockBorrowerOps is IBorrowerOperationsSignatures {
         uint256
     ) external {
         musd.mint(recipient, amount);
+        // Mirror real BorrowerOperations: ActivePool pings the recipient with a
+        // zero-value call after every debt-only adjust (SendCollateral.sol).
+        (bool ok, ) = recipient.call{value: 0}("");
+        require(ok, "Sending BTC failed");
     }
 
     function repayMUSDWithSignature(uint256, address, address, address, bytes memory, uint256) external pure {
