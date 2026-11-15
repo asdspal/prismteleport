@@ -25,3 +25,7 @@ contracts/lib/*/.git
 test-results/
 playwright-report/
 .vercel
+
+# Internal working notes: kept locally, not published
+TESTING.md
+progress.md
