@@ -39,8 +39,25 @@ import { JudgeModeProvider } from "./judgeMode";
  * Testnet 31611 and Mainnet 31612.
  */
 
-export const WALLETCONNECT_PROJECT_ID =
-  process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "prismteleport-dev";
+/**
+ * A usable WalletConnect (Reown) project id is exactly 32 hex characters.
+ *
+ * The connector is created eagerly when WalletConnect is in the wallet list, and
+ * an invalid id makes its `setup()`/`getProvider()` throw — which aborts the whole
+ * connect modal, so even MetaMask never prompts. The id is therefore validated
+ * here and WalletConnect is only offered when it is real.
+ */
+const RAW_WALLETCONNECT_PROJECT_ID =
+  process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "";
+
+export const WALLETCONNECT_ENABLED = /^[0-9a-f]{32}$/i.test(
+  RAW_WALLETCONNECT_PROJECT_ID,
+);
+
+/** Syntactically valid placeholder when WalletConnect is unavailable. */
+export const WALLETCONNECT_PROJECT_ID = WALLETCONNECT_ENABLED
+  ? RAW_WALLETCONNECT_PROJECT_ID
+  : "00000000000000000000000000000000";
 
 export const MEZO_CHAIN_IDS = { testnet: 31611, mainnet: 31612 } as const;
 
