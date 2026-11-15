@@ -14,6 +14,7 @@ const ROUTES = [
   { path: "/prism", heading: /Borrow once\. Lock the carry\./i, label: "terminal" },
   { path: "/stake", heading: /Stake MEZO\. Cut your Prism fees\./i, label: "staking" },
   { path: "/teleport", heading: /Borrow on Mezo from Base\./i, label: "teleport" },
+  { path: "/evidence", heading: /Every claim, traceable\./i, label: "evidence" },
 ] as const;
 
 const VIEWPORTS = [
@@ -109,6 +110,21 @@ test("/teleport offers both origins, the micro path and the cross-chain stepper"
   // And a standalone size goes back to the Trove path.
   await page.getByLabel(/MUSD to borrow/i).fill("2000");
   await expect(page.getByText(/Standalone Trove opened in your own address/)).toBeVisible();
+});
+
+test("/evidence lists deployments, proofs and opens the embeddable widget", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/evidence");
+
+  await expect(page.getByRole("heading", { name: /Deployed contracts/i })).toBeVisible();
+  await expect(page.getByText("TeleportHub", { exact: true })).toBeVisible();
+  // Honest reporting of what is not deployed.
+  await expect(page.getByText("NOT_DEPLOYED").first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Test suites/i })).toBeVisible();
+
+  await page.getByRole("button", { name: /Open the widget/i }).click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Teleport a fixed carry/i })).toBeVisible();
 });
 
 test("/stake shows the fee tiers and keeps transactions behind the compliance gate", async ({
