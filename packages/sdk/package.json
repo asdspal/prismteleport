@@ -7,16 +7,33 @@
   "types": "src/hints.ts",
   "exports": {
     ".": "./src/hints.ts",
-    "./multicallReaders": "./src/multicallReaders.ts"
+    "./multicallReaders": "./src/multicallReaders.ts",
+    "./PrismTeleportModal": "./src/PrismTeleportModal.tsx"
   },
   "scripts": {
-    "build": "tsc --noEmit"
+    "build": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "viem": "2.57.19"
   },
   "devDependencies": {
+    "@types/react": "^19.0.2",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
   }
 }

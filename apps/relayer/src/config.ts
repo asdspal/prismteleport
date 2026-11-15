@@ -53,6 +53,14 @@ export const env = {
   mezoMainnetSortedTroves:
     (process.env.MEZO_MAINNET_SORTED_TROVES as `0x${string}` | undefined) ??
     "0x8C5DB4C62BF29c1C4564390d10c20a47E0b2749f",
+  mezoTestnetTeleportHub:
+    (process.env.MEZO_TESTNET_TELEPORT_HUB as `0x${string}` | undefined) ??
+    "0x4992cE73548f42a4fc3C4685f965ea6C6d1AC401",
+  mezoMainnetTeleportHub: process.env.MEZO_MAINNET_TELEPORT_HUB as
+    | `0x${string}`
+    | undefined,
+  mezoTestnetExplorer:
+    process.env.MEZO_TESTNET_EXPLORER ?? "https://explorer.test.mezo.org",
   /**
    * First block the indexer scans (R-017). Defaults to the PrismTokenizer
    * deployment block recorded in `contracts/deployments/31611.json`.

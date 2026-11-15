@@ -13,6 +13,7 @@ const ROUTES = [
   { path: "/", heading: /Strip sMUSD yield/i, label: "landing" },
   { path: "/prism", heading: /Borrow once\. Lock the carry\./i, label: "terminal" },
   { path: "/stake", heading: /Stake MEZO\. Cut your Prism fees\./i, label: "staking" },
+  { path: "/teleport", heading: /Borrow on Mezo from Base\./i, label: "teleport" },
 ] as const;
 
 const VIEWPORTS = [
@@ -88,6 +89,26 @@ test("/prism exposes the three terminal cards and its position summary", async (
 
   // The testnet-only simulator is clearly labelled (GAP-001).
   await expect(page.getByRole("button", { name: /\[TESTNET SIMULATOR\]/ })).toBeVisible();
+});
+
+test("/teleport offers both origins, the micro path and the cross-chain stepper", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/teleport");
+
+  await expect(page.getByRole("button", { name: /Base Sepolia 84532/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Mezo Direct 31611/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Cross-chain receipt/i })).toBeVisible();
+  await expect(page.getByText("Step 1")).toBeVisible();
+
+  // A sub-1,800 MUSD borrow auto-selects the shared micro vault (R-011).
+  await page.getByLabel(/MUSD to borrow/i).fill("25");
+  await expect(page.getByText(/Micro-vault path selected/)).toBeVisible();
+
+  // And a standalone size goes back to the Trove path.
+  await page.getByLabel(/MUSD to borrow/i).fill("2000");
+  await expect(page.getByText(/Standalone Trove opened in your own address/)).toBeVisible();
 });
 
 test("/stake shows the fee tiers and keeps transactions behind the compliance gate", async ({

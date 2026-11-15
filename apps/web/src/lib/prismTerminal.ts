@@ -110,6 +110,15 @@ export const ERC20_PERMIT_ABI = parseAbi([
   "function eip712Domain() view returns (bytes1 fields, string name, string version, uint256 chainId, address verifyingContract, bytes32 salt, uint256[] extensions)",
 ]);
 
+/** TeleportHub surface the UI needs (rescue escrow claim). */
+export const TELEPORT_HUB_ABI = parseAbi([
+  "function withdrawRescueBtc() returns (uint256 amount)",
+  "function claimableRescueBtc(address) view returns (uint256)",
+  "function processedIntents(bytes32) view returns (bool)",
+]);
+
+export const MEZO_TESTNET_TELEPORT_HUB = "0x4992cE73548f42a4fc3C4685f965ea6C6d1AC401" as Address;
+
 export const ERC20_ABI = parseAbi([
   "function balanceOf(address) view returns (uint256)",
   "function approve(address, uint256) returns (bool)",

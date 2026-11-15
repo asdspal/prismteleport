@@ -4,6 +4,9 @@ const nextConfig = {
   // Mezo Passport ships TypeScript sources inside its dependency chain
   // (@mezo-org/orangekit-smart-account), so Next must transpile them.
   transpilePackages: [
+    // The SDK ships TypeScript (including the embeddable .tsx modal), so Next
+    // must compile it like app code.
+    "@prism-teleport/sdk",
     "@mezo-org/passport",
     "@mezo-org/orangekit",
     "@mezo-org/orangekit-contracts",

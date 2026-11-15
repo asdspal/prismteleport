@@ -12,6 +12,7 @@ import { registerHintsRoutes } from "./routes/hints";
 import { registerMarketsRoutes } from "./routes/markets";
 import { registerPositionsRoutes } from "./routes/positions";
 import { registerRelayRoutes } from "./routes/relay";
+import { registerTeleportRoutes } from "./routes/teleport";
 
 function relayerAddress(): Address | undefined {
   const explicit = process.env.RELAYER_ADDRESS;
@@ -76,6 +77,7 @@ export async function buildServer(): Promise<FastifyInstance> {
   await registerMarketsRoutes(app);
   await registerPositionsRoutes(app);
   await registerRelayRoutes(app);
+  await registerTeleportRoutes(app);
 
   return app;
 }
