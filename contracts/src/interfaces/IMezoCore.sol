@@ -79,6 +79,16 @@ interface IBorrowerOperations {
 
     function withdrawMUSD(uint256 amount, address upperHint, address lowerHint) external;
 
+    /// @notice Adds/removes collateral and/or debt on the caller's Trove.
+    ///         `collWithdrawal` is BTC wei, `debtChange` MUSD wei.
+    function adjustTrove(
+        uint256 collWithdrawal,
+        uint256 debtChange,
+        bool isDebtIncrease,
+        address upperHint,
+        address lowerHint
+    ) external payable;
+
     function repayMUSD(uint256 amount, address upperHint, address lowerHint) external;
 
     function closeTrove() external;

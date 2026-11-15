@@ -275,6 +275,26 @@
           "fixedApyBps": 499
         }
       }
+    },
+    "PrismMicroVault": {
+      "address": "0x316F1CcC8f989Be27CC49F532d3Ea29A9884300E",
+      "musd": "0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503",
+      "smusd": "0xd0F748a45708E77bf00384ED1C0ACC2e968517c3",
+      "borrowerOperations": "0xCdF7028ceAB81fA0C6971208e83fa7872994beE5",
+      "troveManager": "0xE47c80e8c23f6B4A1aE41c34837a0599D5D16bb0",
+      "priceFeed": "0x86bCF0841622a5dAC14A313a15f96A95421b9366",
+      "amm": "0xa40D6d099c8e5e86841367Ed384EDD09859bA979",
+      "tokenizer": "0x7c2d76a696Fba9A12268f12d062AE04b7c4C20B3",
+      "transactionHash": "0xa6022b1baa12a7c3fb25afd47481b10fc073e409d41036b55f9d866b0a379c5c",
+      "blockNumber": 16792466,
+      "gasUsed": 1348102,
+      "runtimeSize": 5847,
+      "sourcify": {
+        "match": "exact_match",
+        "url": "https://sourcify.dev/#/lookup/0x316F1CcC8f989Be27CC49F532d3Ea29A9884300E"
+      },
+      "masterTroveActive": false,
+      "masterTroveNote": "The master Trove needs >=1,800 MUSD of debt, i.e. ~0.05 BTC of collateral, and the deployer holds only 0.002 BTC. The vault therefore ships inactive and anyone can call activateMasterTrove{value} (lazy activation, as the plan allows). The full micro flow is proven on a live 31611 fork and in unit/fuzz tests."
     }
   },
   "milestone1E2E": {
