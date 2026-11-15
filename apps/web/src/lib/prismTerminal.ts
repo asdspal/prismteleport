@@ -34,12 +34,12 @@ export const MIN_NET_DEBT_MUSD = 1_800n * WAD;
 export const ROUTER_ABI = parseAbi([
   "function borrowAndLockFixedYield((address borrower,uint256 musdBorrowAmount,uint256 maturity,uint256 minPtOut,uint256 relayerFeeMusd,uint256 nonce,uint256 deadline,uint256 mezoDeadline,address upperHint,address lowerHint) p, bytes mezoBorrowSig, bytes prismLockSig) returns (uint256 ptOut)",
   "function previewBorrowAndLock(address borrower, uint256 additionalMusdDebt, uint256 maturity) view returns (uint256 ptOut, uint256 newIcr, uint256 fixedApyBps)",
-  "function nonces(address) view returns (uint256)",
+  "function usedNonces(address,uint256) view returns (bool)",
   "function MIN_ICR_NORMAL() view returns (uint256)",
 ]);
 
 export const BORROWER_OPS_SIGNATURES_ABI = parseAbi([
-  "function nonces(address) view returns (uint256)",
+  "function getNonce(address) view returns (uint256)",
 ]);
 
 export const TOKENIZER_ABI = parseAbi([
@@ -60,6 +60,7 @@ export const AMM_ABI = parseAbi([
   "function previewSwapMusdForYt(uint256 maturity, uint256 musdIn, address user) view returns (uint256 ytOut, uint256 refundMusd, uint256 feeMusd)",
   "function quoteBorrowAndLockSpread(uint256 maturity, uint256 musdBorrowAmount, uint256 troveBorrowAprBps) view returns (uint256 ptOut, uint256 fixedApyBps, int256 netCarrySpreadBps)",
   "function ptPriceInMusd(uint256 maturity) view returns (uint256)",
+  "function getPool(uint256 maturity) view returns (address pt, address yt, uint256 reserveMusd, uint256 reservePt, uint256 totalLp, uint256 impliedRateWad, uint256 price)",
 ]);
 
 export const ADAPTER_ABI = parseAbi([
@@ -353,6 +354,68 @@ export function splitSignature(signature: Hex): { v: 27 | 28; r: Hex; s: Hex } {
     s: `0x${hex.slice(64, 128)}` as Hex,
     v: normalizeV(Number.parseInt(hex.slice(128, 130), 16)),
   };
+}
+
+/**
+ * Mezo enforces EIP-7623: a transaction's gas limit must also cover the calldata
+ * floor. viem's estimate can land *below* that floor (a warm-storage swap
+ * estimated 22,044 gas against a 23,610 floor) and the node then rejects the
+ * transaction with an opaque "Missing or invalid parameters" error. Pad every
+ * write by 25%, the same margin the gasless relayer uses.
+ */
+export function paddedGasLimit(estimate: bigint, padBps = 2_500n): bigint {
+  return estimate + (estimate * padBps) / 10_000n;
+}
+
+/**
+ * The router stores `usedNonces[borrower][nonce]` as a flag rather than a
+ * counter, so the client must choose its own nonce. A timestamp seed keeps them
+ * unique across sessions, and the loop guards against a collision.
+ */
+export async function pickFreshRouterNonce(
+  client: { readContract: (args: never) => Promise<unknown> },
+  router: Address,
+  borrower: Address,
+  seed: bigint = BigInt(Math.floor(Date.now() / 1000)),
+): Promise<bigint> {
+  for (let attempt = 0n; attempt < 8n; attempt++) {
+    const candidate = seed + attempt;
+    const used = (await client.readContract({
+      address: router,
+      abi: ROUTER_ABI,
+      functionName: "usedNonces",
+      args: [borrower, candidate],
+    } as never)) as boolean;
+    if (!used) return candidate;
+  }
+  throw new Error("could not find an unused Prism lock nonce");
+}
+
+/**
+ * EIP-2612 domain for a token, or `undefined` when the token does not expose one
+ * (Mezo's MEZO precompile does not), in which case callers must fall back to the
+ * plain `approve` + `stake` path instead of `stakeWithPermit`.
+ */
+export async function readPermitDomain(
+  client: { readContract: (args: never) => Promise<unknown> },
+  token: Address,
+): Promise<{ name: string; version: string; chainId: number; verifyingContract: Address } | undefined> {
+  try {
+    const domain = (await client.readContract({
+      address: token,
+      abi: ERC20_PERMIT_ABI,
+      functionName: "eip712Domain",
+    } as never)) as readonly [string, string, string, bigint, string, string, bigint[]];
+    if (!domain || !domain[1]) return undefined;
+    return {
+      name: domain[1],
+      version: domain[2],
+      chainId: Number(domain[3]),
+      verifyingContract: domain[4] as Address,
+    };
+  } catch {
+    return undefined;
+  }
 }
 
 /** MEZO fee-discount tiers, matching PrismFeeStaking's constants. */

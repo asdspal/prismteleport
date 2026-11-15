@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPublicClient, http, type Address, type Hex, type PublicClient } from "viem";
-import { useAccount, useSignTypedData, useWriteContract } from "wagmi";
+import { useAccount, useSignTypedData } from "wagmi";
+import { usePaddedWrite } from "@/hooks/usePaddedWrite";
 import type { MarketsView, PortfolioView } from "@/hooks/usePrismMarketsAndPortfolio";
 import { computeTroveHints } from "@prism-teleport/sdk";
 import { apiBaseUrl } from "@/hooks/usePrismMarketsAndPortfolio";
@@ -10,6 +11,7 @@ import { mezoTestnet } from "@/lib/chains";
 import {
   BORROWER_OPS_SIGNATURES_ABI,
   buildLockTermsTypedData,
+  pickFreshRouterNonce,
   buildMezoWithdrawTypedData,
   buildRelayBody,
   EXPLORER_TX_URL,
@@ -58,7 +60,7 @@ export function OneSignBorrowAndLockCard({
 }) {
   const { address, isConnected } = useAccount();
   const { signTypedDataAsync } = useSignTypedData();
-  const { writeContractAsync } = useWriteContract();
+  const writeContractAsync = usePaddedWrite();
 
   const [borrowInput, setBorrowInput] = useState("2000");
   const [relayerFeeInput, setRelayerFeeInput] = useState("2");
@@ -127,18 +129,15 @@ export function OneSignBorrowAndLockCard({
       const client =
         publicClient ?? createPublicClient({ chain: mezoTestnet, transport: http() });
       const [mezoNonce, prismNonce, block] = await Promise.all([
+        // BorrowerOperationsSignatures exposes getNonce(address).
         client.readContract({
           address: addresses.borrowerOpsSignatures,
           abi: BORROWER_OPS_SIGNATURES_ABI,
-          functionName: "nonces",
+          functionName: "getNonce",
           args: [address],
         }),
-        client.readContract({
-          address: addresses.router,
-          abi: ROUTER_ABI,
-          functionName: "nonces",
-          args: [address],
-        }),
+        // The router flags used nonces instead of counting them, so pick one.
+        pickFreshRouterNonce(client, addresses.router, address),
         client.getBlock(),
       ]);
       const now = Number(block.timestamp);

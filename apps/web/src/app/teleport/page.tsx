@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useAccount, useWriteContract } from "wagmi";
+import { useAccount } from "wagmi";
+import { usePaddedWrite } from "@/hooks/usePaddedWrite";
 import {
   buildTeleportRequest,
   MIN_TROVE_DEBT_MUSD,
@@ -47,7 +48,7 @@ const STEPS = [
 
 export default function TeleportPage() {
   const { address, isConnected } = useAccount();
-  const { writeContractAsync } = useWriteContract();
+  const writeContractAsync = usePaddedWrite();
 
   const [origin, setOrigin] = useState<number>(84532);
   const [destination, setDestination] = useState<TeleportIntentType>("BORROW_AND_LOCK_PT");

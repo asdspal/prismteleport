@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useAccount, useReadContracts, useWriteContract } from "wagmi";
+import { useAccount, useReadContracts } from "wagmi";
+import { usePaddedWrite } from "@/hooks/usePaddedWrite";
 import { mezoTestnet } from "@/lib/chains";
 import {
   ADAPTER_ABI,
@@ -25,7 +26,7 @@ import { formatBps, formatMusd } from "@/lib/carry";
 
 export function DualTrackAndFeeSimulatorCard() {
   const { isConnected } = useAccount();
-  const { writeContractAsync } = useWriteContract();
+  const writeContractAsync = usePaddedWrite();
   const [message, setMessage] = useState<string | undefined>();
   const injectAmount = DEFAULT_FEE_SIMULATION_MUSD;
 

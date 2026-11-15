@@ -21,8 +21,22 @@ import { mezoMainnet, mezoTestnet } from "@/lib/chains";
 
 export const API_TIMEOUT_MS = 2_500;
 
+/**
+ * The relayer base URL, normalised.
+ *
+ * Callers append `/v1/...`, so a configured base that already carries `/v1` (or a
+ * trailing slash) used to produce `/v1/v1/...` and every request 404'd — which
+ * silently pushed the whole UI into on-chain fallback mode. Both forms are now
+ * accepted.
+ */
+export function normalizeApiBase(url: string): string {
+  return url.trim().replace(/\/+$/, "").replace(/\/v1$/, "");
+}
+
 export function apiBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+  return normalizeApiBase(
+    process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080",
+  );
 }
 
 export interface MarketSeriesView {

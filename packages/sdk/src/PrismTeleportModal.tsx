@@ -129,12 +129,17 @@ export function buildTeleportRequest(args: {
   };
 }
 
+/** Normalises a relayer base so a configured `/v1` suffix is not doubled. */
+export function normalizeApiBase(url: string): string {
+  return url.trim().replace(/\/+$/, "").replace(/\/v1$/, "");
+}
+
 /** Posts an intent and returns the receipt, throwing on a non-2xx answer. */
 export async function submitTeleportIntent(
   apiBaseUrl: string,
   request: TeleportIntentRequest,
 ): Promise<TeleportIntentReceipt> {
-  const response = await fetch(`${apiBaseUrl.replace(/\/$/, "")}/v1/teleport/intent`, {
+  const response = await fetch(`${normalizeApiBase(apiBaseUrl)}/v1/teleport/intent`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(request),

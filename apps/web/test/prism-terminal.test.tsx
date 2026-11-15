@@ -36,6 +36,8 @@ vi.mock("wagmi", () => ({
   useAccount: () => ({ address: "0xfCe44470aC130E66849Aaa23F81D092066ff501E", isConnected: true }),
   useSignTypedData: () => ({ signTypedDataAsync }),
   useWriteContract: () => ({ writeContractAsync }),
+  // usePaddedWrite estimates first (EIP-7623 padding), so the mock needs a client.
+  usePublicClient: () => ({ estimateContractGas: async () => 100_000n }),
   useReadContracts: () => ({ data: readContracts(), refetch: vi.fn() }),
 }));
 

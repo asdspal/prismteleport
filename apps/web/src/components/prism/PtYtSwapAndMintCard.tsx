@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useAccount, useWriteContract } from "wagmi";
+import { useAccount } from "wagmi";
+import { usePaddedWrite } from "@/hooks/usePaddedWrite";
 import type { MarketsView, PortfolioView } from "@/hooks/usePrismMarketsAndPortfolio";
 import { AMM_ABI, PRISM_ADDRESSES, TOKENIZER_ABI, ERC20_ABI, minOutWithSlippage } from "@/lib/prismTerminal";
 import { formatBps, formatMusd, parseAmount, quotePtOut, WAD } from "@/lib/carry";
@@ -30,7 +31,7 @@ export function PtYtSwapAndMintCard({
   blockNumber?: number;
 }) {
   const { isConnected } = useAccount();
-  const { writeContractAsync } = useWriteContract();
+  const writeContractAsync = usePaddedWrite();
   const [tab, setTab] = useState<Tab>("pt");
   const [amountInput, setAmountInput] = useState("100");
   const [message, setMessage] = useState<string | undefined>();

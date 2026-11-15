@@ -32,6 +32,8 @@ vi.mock("wagmi", () => ({
     isConnected: true,
   }),
   useWriteContract: () => ({ writeContractAsync }),
+  // usePaddedWrite estimates first (EIP-7623 padding), so the mock needs a client.
+  usePublicClient: () => ({ estimateContractGas: async () => 100_000n }),
   useSignTypedData: () => ({ signTypedDataAsync }),
   useReadContracts: () => ({
     data: readResults.map((result) => ({ result })),
@@ -198,7 +200,13 @@ describe("StakePage", () => {
     fireEvent.click(screen.getByRole("checkbox"));
     fireEvent.click(screen.getByText(/Attest & continue/));
 
-    await waitFor(() => expect(signTypedDataAsync).toHaveBeenCalled());
+    // MEZO is a precompile without EIP-5267, so the permit path must decline to
+    // sign (a guessed domain would revert on chain) and point at approve+stake.
+    await waitFor(() =>
+      expect(screen.getByText(/does not expose EIP-2612 domain data/)).toBeDefined(),
+    );
+    expect(signTypedDataAsync).not.toHaveBeenCalled();
+    expect(writeContractAsync).not.toHaveBeenCalled();
   });
 
   it("claims streamed MUSD fees without a permit once attested", async () => {

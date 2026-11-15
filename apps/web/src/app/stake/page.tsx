@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useAccount, useReadContracts, useSignTypedData, useWriteContract } from "wagmi";
+import { useAccount, usePublicClient, useReadContracts, useSignTypedData } from "wagmi";
+import { usePaddedWrite } from "@/hooks/usePaddedWrite";
 import {
   ComplianceGuardModal,
   useComplianceGuard,
@@ -14,6 +15,7 @@ import {
   PRISM_ADDRESSES,
   STAKE_TIERS,
   formatCooldown,
+  readPermitDomain,
   splitSignature,
 } from "@/lib/prismTerminal";
 import { formatBps, formatMusd, parseAmount } from "@/lib/carry";
@@ -27,7 +29,8 @@ import { formatBps, formatMusd, parseAmount } from "@/lib/carry";
  */
 export default function StakePage() {
   const { address, isConnected } = useAccount();
-  const { writeContractAsync } = useWriteContract();
+  const publicClient = usePublicClient();
+  const writeContractAsync = usePaddedWrite();
   const { signTypedDataAsync } = useSignTypedData();
   const compliance = useComplianceGuard();
 
@@ -51,8 +54,6 @@ export default function StakePage() {
       { address: addresses.feeStaking, abi: FEE_STAKING_ABI, functionName: "getFeeDiscountBps", args: [address ?? MEZO_TOKEN] },
       { address: addresses.feeStaking, abi: FEE_STAKING_ABI, functionName: "totalMezoStaked" },
       { address: addresses.musd, abi: ERC20_ABI, functionName: "balanceOf", args: [address ?? MEZO_TOKEN] },
-      { address: MEZO_TOKEN, abi: ERC20_PERMIT_ABI, functionName: "nonces", args: [address ?? MEZO_TOKEN] },
-      { address: MEZO_TOKEN, abi: ERC20_PERMIT_ABI, functionName: "eip712Domain" },
     ],
     query: { enabled: true },
   });
@@ -64,8 +65,6 @@ export default function StakePage() {
     discountBps,
     totalStaked,
     musdBalance,
-    permitNonce,
-    permitDomain,
   ] = (data ?? []).map((entry) => entry?.result) as [
     bigint | undefined,
     readonly [bigint, bigint, bigint, bigint] | undefined,
@@ -73,8 +72,6 @@ export default function StakePage() {
     bigint | undefined,
     bigint | undefined,
     bigint | undefined,
-    bigint | undefined,
-    readonly [string, string, string, bigint, string, string, bigint[]] | undefined,
   ];
 
   const staked = stakeInfo?.[0] ?? 0n;
@@ -87,10 +84,11 @@ export default function StakePage() {
     return index === -1 ? -1 : index;
   }, [discountBps]);
 
-  async function run(action: () => Promise<string>) {
+  async function run(action: () => Promise<string | undefined>) {
     try {
       setMessage("Waiting for wallet confirmation…");
       const hash = await action();
+      if (!hash) return; // the action explained itself (e.g. permit unavailable)
       setMessage(`Submitted ${hash.slice(0, 12)}…`);
       await refetch();
     } catch (error) {
@@ -120,13 +118,33 @@ export default function StakePage() {
     compliance.guard(() =>
       void run(async () => {
         if (!address) throw new Error("connect a wallet first");
+
+        // MEZO on Mezo is a precompile that does not implement EIP-5267, so
+        // `eip712Domain()` is unavailable and a permit signature cannot be built
+        // correctly. Fall back to the approve + stake path instead of signing a
+        // guessed domain (which would revert on chain).
+        if (!publicClient) throw new Error("no RPC client available");
+        const domain = await readPermitDomain(publicClient, MEZO_TOKEN);
+        if (!domain) {
+          setMessage(
+            "MEZO does not expose EIP-2612 domain data on this chain — use “Approve & stake”.",
+          );
+          return;
+        }
+
+        const nonce = (await publicClient.readContract({
+          address: MEZO_TOKEN,
+          abi: ERC20_PERMIT_ABI,
+          functionName: "nonces",
+          args: [address],
+        })) as bigint;
         const deadline = BigInt(Math.floor(Date.now() / 1000) + 3_600);
         const signature = (await signTypedDataAsync({
           domain: {
-            name: permitDomain?.[1] ?? "MEZO",
-            version: permitDomain?.[2] ?? "1",
-            chainId: permitDomain ? Number(permitDomain[3]) : 31611,
-            verifyingContract: (permitDomain?.[4] ?? MEZO_TOKEN) as `0x${string}`,
+            name: domain.name,
+            version: domain.version,
+            chainId: domain.chainId,
+            verifyingContract: domain.verifyingContract,
           },
           types: {
             Permit: [
@@ -142,7 +160,7 @@ export default function StakePage() {
             owner: address,
             spender: addresses.feeStaking,
             value: amount,
-            nonce: permitNonce ?? 0n,
+            nonce,
             deadline,
           },
         })) as `0x${string}`;
