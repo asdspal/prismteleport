@@ -62,7 +62,8 @@ contract PrismTokenizerForkTest is Test {
             IPrismFeeStaking(FEE_STAKING),
             IERC20(MEZO),
             treasury,
-            address(this)
+            address(this),
+            0
         );
         tokenizer.initializeSeries(maturity);
     }

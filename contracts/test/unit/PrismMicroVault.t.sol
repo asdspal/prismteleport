@@ -189,7 +189,8 @@ contract PrismMicroVaultTest is Test {
             IPrismFeeStaking(address(feeStaking)),
             IERC20(address(mezo)),
             treasury,
-            keeper
+            keeper,
+            0
         );
         tokenizer.initializeSeries(maturity);
 

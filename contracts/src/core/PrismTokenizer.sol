@@ -33,6 +33,9 @@ contract PrismTokenizer is ReentrancyGuard {
     }
 
     IERC20 public immutable musd;
+    /// @notice Hard TVL cap on new PT/YT issuance, in MUSD wei (0 = uncapped).
+    ///         The capped Mainnet instance uses 2,500e18 (DEC-001, R-020).
+    uint256 public immutable maxTvlMusd;
     IMUSDSavingsRate public immutable smusd;
     DualTrackAdapter public immutable adapter;
     PrismSeriesFactory public immutable seriesFactory;
@@ -81,7 +84,8 @@ contract PrismTokenizer is ReentrancyGuard {
         IPrismFeeStaking _feeStaking,
         IERC20 _mezo,
         address _treasury,
-        address _keeper
+        address _keeper,
+        uint256 _maxTvlMusd
     ) {
         require(address(_musd) != address(0), "musd=0");
         require(address(_smusd) != address(0), "smusd=0");
@@ -93,6 +97,7 @@ contract PrismTokenizer is ReentrancyGuard {
         require(_keeper != address(0), "keeper=0");
 
         musd = _musd;
+        maxTvlMusd = _maxTvlMusd;
         smusd = _smusd;
         adapter = _adapter;
         seriesFactory = _seriesFactory;
@@ -149,6 +154,7 @@ contract PrismTokenizer is ReentrancyGuard {
         Series storage s = _requireSeries(maturity);
         // forge-lint: disable-next-line(block-timestamp)
         require(block.timestamp < maturity, "matured");
+        _requireTvlHeadroom(musdAmount);
 
         _syncYield();
         musd.safeTransferFrom(msg.sender, address(this), musdAmount);
@@ -173,6 +179,7 @@ contract PrismTokenizer is ReentrancyGuard {
         Series storage s = _requireSeries(maturity);
         // forge-lint: disable-next-line(block-timestamp)
         require(block.timestamp < maturity, "matured");
+        _requireTvlHeadroom(smusdAmount);
 
         _syncYield();
         IERC20(address(smusd)).safeTransferFrom(msg.sender, address(this), smusdAmount);
@@ -313,6 +320,31 @@ contract PrismTokenizer is ReentrancyGuard {
             claimableMusd[maturity][user] + (ytBalance * (accMusd - userMusdIndex[maturity][user])) / ACC_PRECISION;
         pendingMezo =
             claimableMezo[maturity][user] + (ytBalance * (accMezo - userMezoIndex[maturity][user])) / ACC_PRECISION;
+    }
+
+    /// @dev Enforces the capped-mainnet TVL ceiling (R-020): issuance measured as
+    /// the MUSD-equivalent PT supply across live series must stay under the cap.
+    function _requireTvlHeadroom(uint256 additionalMusd) internal view {
+        uint256 cap = maxTvlMusd;
+        if (cap == 0) return;
+        uint256 outstanding = 0;
+        uint256 length = maturities.length;
+        for (uint256 i = 0; i < length; i++) {
+            outstanding += series[maturities[i]].totalPt;
+        }
+        require(outstanding + additionalMusd <= cap, "tvl cap");
+    }
+
+    /// @notice Remaining issuance headroom under the cap (0 when uncapped).
+    function tvlHeadroomMusd() external view returns (uint256) {
+        uint256 cap = maxTvlMusd;
+        if (cap == 0) return 0;
+        uint256 outstanding = 0;
+        uint256 length = maturities.length;
+        for (uint256 i = 0; i < length; i++) {
+            outstanding += series[maturities[i]].totalPt;
+        }
+        return outstanding >= cap ? 0 : cap - outstanding;
     }
 
     function _mintPy(Series storage s, address receiver, uint256 amount) internal {

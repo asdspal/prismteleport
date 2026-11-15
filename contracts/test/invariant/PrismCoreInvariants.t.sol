@@ -308,7 +308,8 @@ contract PrismCoreInvariantsTest is Test {
             IPrismFeeStaking(address(feeStaking)),
             IERC20(address(mezo)),
             treasury,
-            address(handler)
+            address(handler),
+            0
         );
         amm = new PrismYieldAMM(tokenizer, IERC20(address(musd)), IPrismFeeStaking(address(feeStaking)), treasury);
 

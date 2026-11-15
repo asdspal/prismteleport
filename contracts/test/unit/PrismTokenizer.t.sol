@@ -95,10 +95,62 @@ contract PrismTokenizerTest is Test {
             IPrismFeeStaking(address(feeStaking)),
             IERC20(address(mezo)),
             treasury,
-            keeper
+            keeper,
+            0
         );
         vm.prank(address(this));
         tokenizer.initializeSeries(maturity);
+    }
+
+    /// @dev A capped instance mirrors the Mainnet deployment (DEC-001, R-020).
+    function _cappedTokenizer(uint256 cap) internal returns (PrismTokenizer) {
+        // The adapter binds exactly one tokenizer, so the capped instance gets its
+        // own (sharing the sMUSD/gauge/MEZO plumbing).
+        DualTrackAdapter cappedAdapter =
+            new DualTrackAdapter(IERC20(address(smusd)), IERC20(address(mezo)), IMUSDSavingsGauge(address(gauge)), 500);
+        return new PrismTokenizer(
+            IERC20(address(musd)),
+            IMUSDSavingsRate(address(smusd)),
+            cappedAdapter,
+            new PrismSeriesFactory(),
+            IPrismFeeStaking(address(feeStaking)),
+            IERC20(address(mezo)),
+            treasury,
+            keeper,
+            cap
+        );
+    }
+
+    function testTvlCapBlocksIssuanceAboveTheMainnetCeiling() public {
+        PrismTokenizer capped = _cappedTokenizer(100e18);
+        // A fresh series: the shared factory already minted the setUp maturity.
+        uint256 cappedMaturity = maturity + SECONDS_PER_WEEK;
+        capped.initializeSeries(cappedMaturity);
+
+        musd.mint(alice, 200e18);
+        vm.startPrank(alice);
+        musd.approve(address(capped), 200e18);
+
+        capped.mintPyFromMusd(60e18, cappedMaturity, alice);
+        assertEq(capped.tvlHeadroomMusd(), 40e18);
+
+        // 60 + 60 = 120 > 100: rejected, and the headroom is untouched.
+        vm.expectRevert(bytes("tvl cap"));
+        capped.mintPyFromMusd(60e18, cappedMaturity, alice);
+        assertEq(capped.tvlHeadroomMusd(), 40e18);
+
+        // Filling exactly to the cap is allowed, then nothing more fits.
+        capped.mintPyFromMusd(40e18, cappedMaturity, alice);
+        assertEq(capped.tvlHeadroomMusd(), 0);
+        vm.expectRevert(bytes("tvl cap"));
+        capped.mintPyFromMusd(1e18, cappedMaturity, alice);
+        vm.stopPrank();
+    }
+
+    function testUncappedTokenizerKeepsWorking() public {
+        assertEq(tokenizer.maxTvlMusd(), 0);
+        assertEq(tokenizer.tvlHeadroomMusd(), 0);
+        _mintPy(alice, 5_000e18);
     }
 
     function _mintPy(address user, uint256 amount) internal returns (address ptToken, address ytToken) {

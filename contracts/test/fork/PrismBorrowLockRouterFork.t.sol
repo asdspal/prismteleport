@@ -192,7 +192,8 @@ contract PrismBorrowLockRouterForkTest is Test {
             IPrismFeeStaking(address(feeStaking)),
             IERC20(MEZO),
             treasury,
-            address(this)
+            address(this),
+            0
         );
         tokenizer.initializeSeries(maturity);
         amm = new PrismYieldAMM(tokenizer, IERC20(MUSD), IPrismFeeStaking(address(feeStaking)), treasury);

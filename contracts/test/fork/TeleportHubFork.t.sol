@@ -257,7 +257,8 @@ contract TeleportHubForkTest is Test {
             IPrismFeeStaking(address(feeStaking)),
             IERC20(address(mezo)),
             treasury,
-            keeper
+            keeper,
+            0
         );
         tokenizer.initializeSeries(maturity);
         amm = new PrismYieldAMM(tokenizer, IERC20(address(musd)), IPrismFeeStaking(address(feeStaking)), treasury);

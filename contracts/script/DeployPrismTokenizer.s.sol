@@ -40,7 +40,8 @@ contract DeployPrismTokenizer is Script {
             IPrismFeeStaking(feeStaking),
             IERC20(mezo),
             treasury,
-            keeper
+            keeper,
+            0
         );
         tokenizer.initializeSeries(fourWeekMaturity);
         tokenizer.initializeSeries(twelveWeekMaturity);

@@ -1,0 +1,23 @@
+{
+  "chainId": 31612,
+  "network": "Mezo Mainnet",
+  "contracts": {
+    "PrismTokenizer": {
+      "address": null,
+      "status": "NOT_DEPLOYED",
+      "reason": "The deployer EOA 0xfCe44470aC130E66849Aaa23F81D092066ff501E holds 0 BTC on Mezo Mainnet, so the capped production suite cannot be broadcast from this environment. The contracts, the 2,500 MUSD cap and the rehearsal suite are complete; the script is ready to run once the deployer is funded.",
+      "script": "script/DeployMainnetCapped.s.sol",
+      "rehearsal": "test/fork/MainnetCappedRehearsalFork.t.sol (4/4 passing)",
+      "maxTvlMusd": "2500e18",
+      "canonicalBindings": {
+        "musd": "0xdD468A1DDc392dcdbEf6db6e34E89AA338F9F186",
+        "smusd": "0xb4D498029af77680cD1eF828b967f010d06C51CC",
+        "borrowerOperations": "0x44b1bac67dDA612a41a58AAf779143B181dEe031",
+        "borrowerOpsSignatures": "0xB57ab578BF20b3e318f3EFAA587C51DBccE5df7a",
+        "troveManager": "0x94AfB503dBca74aC3E4929BACEeDfCe19B93c193",
+        "priceFeed": "0xc5aC5A8892230E0A3e1c473881A2de7353fFcA88",
+        "mezo": "0x7B7c000000000000000000000000000000000001"
+      }
+    }
+  }
+}

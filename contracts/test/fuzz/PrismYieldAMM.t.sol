@@ -100,7 +100,8 @@ contract PrismYieldAMMTest is Test {
             IPrismFeeStaking(address(feeStaking)),
             IERC20(address(mezo)),
             treasury,
-            address(this)
+            address(this),
+            0
         );
         tokenizer.initializeSeries(maturity);
         amm = new PrismYieldAMM(tokenizer, IERC20(address(musd)), IPrismFeeStaking(address(feeStaking)), treasury);
