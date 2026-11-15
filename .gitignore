@@ -24,3 +24,4 @@ contracts/lib/*/.git
 *.log
 test-results/
 playwright-report/
+.vercel

@@ -11,5 +11,8 @@
     "test": "pnpm -r --if-present test",
     "test:contracts": "cd contracts && forge test",
     "test:contracts:fuzz": "cd contracts && forge test --fuzz-runs 10000"
+  },
+  "devDependencies": {
+    "next": "15.5.29"
   }
 }
