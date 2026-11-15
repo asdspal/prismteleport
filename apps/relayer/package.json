@@ -7,6 +7,7 @@
     "build": "tsc --noEmit",
     "test": "vitest run",
     "db:migrate": "tsx src/db/migrate.ts",
+    "indexer": "tsx src/workers/runIndexer.ts",
     "dev": "tsx watch src/server.ts",
     "start": "tsx src/server.ts"
   },

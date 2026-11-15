@@ -1,4 +1,5 @@
 import {
+  type AbiEvent,
   createPublicClient,
   fallback,
   http,
@@ -55,9 +56,11 @@ export function createMezoClients(): {
   return { testnet, mainnet };
 }
 
-export type LogsFilter = Omit<GetLogsParameters, "fromBlock" | "toBlock"> & {
+export type LogsFilter = Omit<GetLogsParameters, "fromBlock" | "toBlock" | "events"> & {
   fromBlock: bigint;
   toBlock: bigint;
+  /** Optional decoded event definitions (`parseAbiItem` output) for typed `args`. */
+  events?: readonly AbiEvent[];
 };
 
 export async function getLogsChunked(

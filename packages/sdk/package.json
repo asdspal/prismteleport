@@ -6,7 +6,8 @@
   "main": "src/hints.ts",
   "types": "src/hints.ts",
   "exports": {
-    ".": "./src/hints.ts"
+    ".": "./src/hints.ts",
+    "./multicallReaders": "./src/multicallReaders.ts"
   },
   "scripts": {
     "build": "tsc --noEmit"

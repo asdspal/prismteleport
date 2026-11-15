@@ -53,4 +53,10 @@ export const env = {
   mezoMainnetSortedTroves:
     (process.env.MEZO_MAINNET_SORTED_TROVES as `0x${string}` | undefined) ??
     "0x8C5DB4C62BF29c1C4564390d10c20a47E0b2749f",
+  /**
+   * First block the indexer scans (R-017). Defaults to the PrismTokenizer
+   * deployment block recorded in `contracts/deployments/31611.json`.
+   */
+  indexerStartBlock31611: BigInt(process.env.INDEXER_START_BLOCK_31611 ?? 16381143),
+  indexerPollMs: Number(process.env.INDEXER_POLL_MS ?? 30_000),
 };
