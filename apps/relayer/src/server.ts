@@ -8,6 +8,7 @@ import { formatEther, isAddress, type Address } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { env } from "./config";
 import { createMezoClients } from "./lib/mezoClient";
+import { registerHintsRoutes } from "./routes/hints";
 
 function relayerAddress(): Address | undefined {
   const explicit = process.env.RELAYER_ADDRESS;
@@ -67,6 +68,8 @@ export async function buildServer(): Promise<FastifyInstance> {
 
     return { status, mezoTestnetBlock, mezoMainnetBlock, relayerGasBtc };
   });
+
+  await registerHintsRoutes(app);
 
   return app;
 }

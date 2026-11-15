@@ -11,6 +11,7 @@
     "start": "tsx src/server.ts"
   },
   "dependencies": {
+    "@prism-teleport/sdk": "workspace:*",
     "ioredis": "^5.4.1",
     "pg": "^8.13.1",
     "@fastify/cors": "^10.0.1",

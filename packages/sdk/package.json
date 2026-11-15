@@ -1,0 +1,21 @@
+{
+  "name": "@prism-teleport/sdk",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/hints.ts",
+  "types": "src/hints.ts",
+  "exports": {
+    ".": "./src/hints.ts"
+  },
+  "scripts": {
+    "build": "tsc --noEmit"
+  },
+  "dependencies": {
+    "viem": "2.21.54"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
