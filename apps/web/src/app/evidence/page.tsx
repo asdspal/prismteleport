@@ -5,6 +5,7 @@ import { useState } from "react";
 import { PrismTeleportModal } from "@prism-teleport/sdk/PrismTeleportModal";
 import {
   DEPLOYMENTS,
+  TEST_SUMMARY_AS_OF,
   LIVE_URLS,
   PROOFS,
   TEST_SUMMARY,
@@ -30,9 +31,8 @@ export default function EvidencePage() {
           Every claim, traceable.
         </h1>
         <p className="mt-3 max-w-3xl text-sm text-text-secondary">
-          This page is generated from the same deployment records and test suites
-          the build runs against. Where something could not be executed in this
-          environment, it says so explicitly instead of being glossed over.
+          Deployed addresses, proof transactions and test results, as of the date
+          shown with each section. Items that could not be verified are marked.
         </p>
       </header>
 
@@ -123,7 +123,7 @@ export default function EvidencePage() {
           id="tests-heading"
           className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-secondary"
         >
-          Test suites
+          Test suites (as of {TEST_SUMMARY_AS_OF})
         </h2>
         <dl className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {TEST_SUMMARY.map((entry) => (

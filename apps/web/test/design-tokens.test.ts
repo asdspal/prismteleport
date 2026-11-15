@@ -32,6 +32,7 @@ const bg = {
 const text = {
   primary: color.text.primary.value,
   secondary: color.text.secondary.value,
+  tertiary: color.text.tertiary.value,
   inverse: color.text.inverse.value,
 };
 const brand = {
@@ -49,6 +50,10 @@ const ACTIVE_PAIRS: Array<[string, string, string]> = [
   ["text.secondary", text.secondary, bg.surface],
   ["text.secondary", text.secondary, bg.hover],
   ["text.secondary", text.secondary, bg.muted],
+  ["text.tertiary", text.tertiary, bg.primary],
+  ["text.tertiary", text.tertiary, bg.surface],
+  ["text.tertiary", text.tertiary, bg.hover],
+  ["text.tertiary", text.tertiary, bg.muted],
   ["text.inverse / bitcoinAmber", text.inverse, brand.amber],
   ["text.inverse / prismCyan", text.inverse, brand.cyan],
   ["text.inverse / mezoViolet", text.inverse, brand.violet],

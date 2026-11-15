@@ -100,8 +100,8 @@ export default function RootLayout({
         <footer className="mt-12 border-t border-border-default">
           <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 py-6 text-xs text-text-secondary sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <p>
-              Read-only shell. Contracts, relayer, and live series deploy in
-              Milestone 1.
+              Testnet build. Prism contracts are deployed on Mezo Testnet; Base
+              Sepolia and Mezo Mainnet are not deployed.
             </p>
             <p className="font-mono">
               Mezo Testnet 31611 · Base Sepolia 84532

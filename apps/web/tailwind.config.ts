@@ -17,6 +17,7 @@ export default {
         text: {
           primary: color.text.primary.value,
           secondary: color.text.secondary.value,
+          tertiary: color.text.tertiary.value,
           disabled: color.text.Disabled.value,
           inverse: color.text.inverse.value,
         },

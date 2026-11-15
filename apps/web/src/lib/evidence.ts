@@ -93,12 +93,15 @@ export const PROOFS: ProofEntry[] = [
   },
 ];
 
+/** Date of the last full test run reflected below. */
+export const TEST_SUMMARY_AS_OF = "2026-11-15";
+
 export const TEST_SUMMARY = [
   { suite: "Foundry (contracts)", count: "152 passing", detail: "unit, fuzz, invariant and fork suites" },
   { suite: "Relayer (API + workers)", count: "46 passing", detail: "hints, relay, markets/positions, teleport" },
   { suite: "SDK", count: "9 passing", detail: "embeddable modal + intent building" },
-  { suite: "Web (unit)", count: "50 passing", detail: "carry math, terminal, staking, compliance" },
-  { suite: "Playwright + axe-core", count: "15 passing", detail: "0 violations at 360px and 1280px" },
+  { suite: "Web (unit)", count: "57 passing", detail: "carry math, terminal, staking, compliance" },
+  { suite: "Playwright + axe-core", count: "18 passing", detail: "0 violations at 360px and 1280px" },
 ];
 
 export const LIVE_URLS = [
