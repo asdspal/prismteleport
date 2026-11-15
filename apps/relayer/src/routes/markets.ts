@@ -60,6 +60,7 @@ export async function registerMarketsRoutes(app: FastifyInstance): Promise<void>
       ytTokenAddress: string;
       fixedPtApyBps: number;
       impliedYtApyBps: number;
+      ptPriceWei: string;
       activeAdapterMode: string;
       netCarrySpreadBps: number;
     }> = [];
@@ -105,6 +106,7 @@ export async function registerMarketsRoutes(app: FastifyInstance): Promise<void>
           ytTokenAddress: entry.ytTokenAddress,
           fixedPtApyBps: entry.fixedPtApyBps,
           impliedYtApyBps: entry.impliedYtApyBps,
+          ptPriceWei: entry.ptPriceWei,
           activeAdapterMode: entry.activeAdapterMode,
           netCarrySpreadBps: entry.netCarrySpreadBps,
         });

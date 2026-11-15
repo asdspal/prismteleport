@@ -48,7 +48,6 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${jetbrains.variable}`}>
       <body className="min-h-screen bg-bg-primary text-text-primary">
-        <PrismClientProviders>
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-bg-surface focus:px-4 focus:py-2 focus:text-text-primary"
@@ -89,7 +88,9 @@ export default function RootLayout({
 
             <div className="flex flex-wrap items-center justify-end gap-3">
               <NetworkStatus />
-              <ClientStatusBar />
+              <PrismClientProviders>
+                <ClientStatusBar />
+              </PrismClientProviders>
             </div>
           </div>
         </header>
@@ -107,7 +108,6 @@ export default function RootLayout({
             </p>
           </div>
         </footer>
-        </PrismClientProviders>
       </body>
     </html>
   );

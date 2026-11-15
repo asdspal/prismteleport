@@ -50,6 +50,8 @@ export interface MarketSeries {
   fixedPtApyBps: number;
   /** The AMM pool's implied annual rate in bps (the market's implied yield). */
   impliedYtApyBps: number;
+  /** PT price in MUSD (WAD), i.e. what one PT costs today (redeems at 1 MUSD). */
+  ptPriceWei: string;
   activeAdapterMode: ActiveAdapterMode;
   netCarrySpreadBps: number;
   /** Extra fields the indexer/route persist into `prism_series` (decimal strings). */
@@ -268,6 +270,7 @@ export async function fetchMarketsOnChain(
       ytTokenAddress: seriesResult[2] as Address,
       fixedPtApyBps: Number(quoteResult[1]),
       impliedYtApyBps: Number((BigInt(poolResult[5] as bigint) * BPS) / WAD),
+      ptPriceWei: (poolResult[6] as bigint).toString(),
       activeAdapterMode,
       netCarrySpreadBps: Number(quoteResult[2]),
       rateAtInit: formatUnits(seriesResult[5] as bigint, 18),

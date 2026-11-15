@@ -28,6 +28,7 @@ export function apiBaseUrl(): string {
 export interface MarketSeriesView {
   seriesId?: string;
   maturityTimestamp: number;
+  ptPriceWei?: string;
   ptTokenAddress: string;
   ytTokenAddress: string;
   fixedPtApyBps: number;
@@ -62,6 +63,8 @@ export interface PrismData {
   source: DataSource;
   loading: boolean;
   error?: string;
+  /** Block the values were read at, for the "Read at block #…" citations. */
+  blockNumber?: number;
 }
 
 export interface UsePrismDataOptions {
@@ -90,6 +93,14 @@ async function fetchJson<T>(url: string, timeoutMs: number): Promise<T> {
     return (await response.json()) as T;
   } finally {
     clearTimeout(timer);
+  }
+}
+
+async function currentBlock(client: PublicClient): Promise<number | undefined> {
+  try {
+    return Number(await client.getBlockNumber());
+  } catch {
+    return undefined;
   }
 }
 
@@ -122,7 +133,13 @@ export function usePrismMarketsAndPortfolio(
             timeoutMs,
           )
         : undefined;
-      setState({ markets, portfolio, source: "api", loading: false });
+      setState({
+        markets,
+        portfolio,
+        source: "api",
+        loading: false,
+        blockNumber: await currentBlock(options.publicClient ?? createPrismPublicClient(chainId)),
+      });
       return;
     } catch (apiError) {
       // Fall through to direct RPC reads; surface the API reason only if both fail.
@@ -137,6 +154,7 @@ export function usePrismMarketsAndPortfolio(
           portfolio,
           source: "onchain",
           loading: false,
+          blockNumber: await currentBlock(client),
         });
       } catch (rpcError) {
         setState({
